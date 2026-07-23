@@ -58,3 +58,16 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* Belt-and-suspenders: kill all motion for users who ask for it, even on
+   utilities that don't ship a motion-safe variant. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

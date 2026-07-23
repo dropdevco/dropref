@@ -57,7 +57,9 @@ export function ResultView({
       )}
 
       <div className="flex flex-col items-center gap-4 text-center">
-        <VerdictBadge verdict={result.verdict} />
+        <div className="motion-safe:animate-in motion-safe:zoom-in-95 motion-safe:fade-in motion-safe:duration-500">
+          <VerdictBadge verdict={result.verdict} />
+        </div>
         {result.originalCall && (
           <p className="text-xs text-muted-foreground">
             Referee called:{' '}

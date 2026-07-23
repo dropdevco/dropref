@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, Sparkles } from 'lucide-react';
 
 import type {
@@ -35,6 +35,18 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<AnalyzeError | null>(null);
+
+  // Move keyboard/screen-reader focus to the active view when the phase
+  // changes, so a state swap doesn't strand focus on a button that's gone.
+  const stageRef = useRef<HTMLElement>(null);
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    stageRef.current?.focus();
+  }, [phase]);
 
   const previewRef = useRef<string | null>(null);
   const setPreview = useCallback((url: string | null) => {
@@ -142,7 +154,15 @@ export default function Home() {
         </p>
       </header>
 
-      <section className="flex-1">
+      <section
+        ref={stageRef}
+        tabIndex={-1}
+        className="flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      >
+        <div
+          key={phase}
+          className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
+        >
         {phase === 'idle' && (
           <div className="space-y-6">
             {previewUrl ? (
@@ -227,6 +247,7 @@ export default function Home() {
         {phase === 'error' && error && (
           <ErrorView error={error} onRetry={reset} />
         )}
+        </div>
       </section>
 
       <footer className="mt-8 text-center text-[11px] text-muted-foreground">

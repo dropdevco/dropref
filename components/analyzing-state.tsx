@@ -44,7 +44,11 @@ export function AnalyzingState({ previewUrl }: { previewUrl: string }) {
       <div className="flex items-center gap-3 rounded-xl border bg-card p-4">
         <Loader2 className="h-5 w-5 shrink-0 animate-spin text-primary" aria-hidden />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium" aria-live="polite">
+          <p
+            key={stageFor(elapsed)}
+            className="truncate text-sm font-medium motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-500"
+            aria-live="polite"
+          >
             {stageFor(elapsed)}
           </p>
           <p className="text-xs text-muted-foreground">

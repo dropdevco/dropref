@@ -104,7 +104,9 @@ Status legend: ☐ todo · ◐ in progress · ☑ done
 - ☐ **Real sample clips** dropped into `/public/samples` (see that dir's README
   for exact filenames). `soccer-offside.mp4` is a **synthetic QA placeholder** —
   replace before demo. The other 5 sample buttons show "not available yet".
-- ☐ **Polish**: transitions between states, focus management on state change, empty/disabled affordances
+- ☑ **Polish & motion**: keyed entrance animations per phase, focus moves to the
+  active view on transition, analyzing stage-label crossfade, verdict zoom-in,
+  button/chip active-press. All `motion-safe:` + a global reduced-motion guard.
 - ☐ **Favicon + OG/social meta** for the share/demo
 - ☐ **Deploy** (Vercel) and fill the live link in `README.md`
 - ☐ **Flip to real API** once Dev B lands `analyze()` — set `USE_MOCK = false`, smoke-test the multipart round-trip + each error code
@@ -144,3 +146,7 @@ in the same commit.** Specifically:
   demoable. Known cosmetic gap: the 4th loading stage ("Comparing against
   official rules…", 16s+) never shows under the 12s mock — real pipeline
   latency will surface it.
+- **2026-07-23** — Polish & motion pass (CSS/Tailwind + tailwindcss-animate,
+  no new deps): per-phase entrance animation, focus management on view swap,
+  stage-label crossfade, verdict zoom-in, active-press on buttons/chips, and a
+  `prefers-reduced-motion` kill-switch in globals.css. Build green.

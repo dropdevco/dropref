@@ -30,7 +30,7 @@ export function SampleClips({
                 type="button"
                 disabled={disabled}
                 onClick={() => onSelect(sport.id, sample)}
-                className="rounded-full border border-input bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                className="rounded-full border border-input bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-[color,background-color,transform] motion-safe:active:scale-[0.96] hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
               >
                 {sample.label}
               </button>

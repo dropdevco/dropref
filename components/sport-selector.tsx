@@ -25,7 +25,7 @@ export function SportSelector({
               aria-checked={selected}
               onClick={() => onChange(sport.id)}
               className={cn(
-                'flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-sm font-medium transition-colors',
+                'flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-sm font-medium transition-[color,background-color,border-color,box-shadow,transform] motion-safe:active:scale-[0.97]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 selected
                   ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
