@@ -47,15 +47,15 @@ export function ResultView({
     : previewUrl;
 
   return (
-    <div className="space-y-5">
+    <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start">
       <p className="sr-only" role="status">
         Verdict: {VERDICT_LABEL[result.verdict]}. Confidence:{' '}
         {CONFIDENCE_LABEL[result.confidence]}.
       </p>
 
       {/* verdict hero */}
-      <div className="bezel">
-        <div className="bezel-core flex flex-col items-center gap-5 px-6 py-8">
+      <div className="bezel lg:sticky lg:top-6">
+        <div className="bezel-core flex flex-col items-center gap-5 px-6 py-8 lg:min-h-[520px] lg:justify-center">
           <VerdictBadge verdict={result.verdict} />
           {result.originalCall && (
             <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted-foreground">
@@ -73,7 +73,7 @@ export function ResultView({
       </div>
 
       {videoSrc && (
-        <div className="bezel overflow-hidden">
+        <div className="bezel lg:col-start-2 overflow-hidden">
           <div className="bg-white/5 border-b border-white/10 px-3 py-1.5 text-xs font-medium text-muted-foreground flex items-center justify-center gap-1.5">
             <Eye className="h-3.5 w-3.5" />
             {result.annotatedVideoBase64 ? 'Computer Vision Processed' : 'Original Video'}
@@ -84,7 +84,7 @@ export function ResultView({
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video
               src={videoSrc}
-              className="mx-auto max-h-56 w-full rounded-xl object-contain rounded-t-none"
+              className="mx-auto max-h-56 w-full rounded-xl object-contain lg:max-h-[52vh] rounded-t-none"
               controls
               playsInline
               aria-label="Uploaded clip playback"
@@ -93,7 +93,7 @@ export function ResultView({
         </div>
       )}
 
-      <div className="space-y-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+      <div className="space-y-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 lg:col-start-2 lg:p-6">
         <Section icon={Eye} title="What the AI saw">
           {result.playDescription}
         </Section>
@@ -104,7 +104,7 @@ export function ResultView({
       </div>
 
       {result.rulesCited.length > 0 && (
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5">
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 lg:col-start-2 lg:px-6">
           <Accordion type="single" collapsible>
             <AccordionItem value="rules" className="border-b-0">
               <AccordionTrigger className="hover:no-underline">
@@ -140,7 +140,7 @@ export function ResultView({
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-3 pt-1">
+      <div className="flex flex-col items-center gap-3 pt-1 lg:col-start-1 lg:row-start-2">
         <Button onClick={onReset} size="lg" className="w-full">
           <RotateCcw className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
           Review another play
