@@ -9,6 +9,8 @@ import badCall from '@/mocks/bad-call.json';
 import inconclusive from '@/mocks/inconclusive.json';
 import errorMock from '@/mocks/error.json';
 
+export type MockScenario = 'fair' | 'bad' | 'inconclusive' | 'error';
+
 /**
  * OWNER: Dev A (frontend).
  *
@@ -21,7 +23,7 @@ export const USE_MOCK = true;
  * While USE_MOCK is true, choose which fixture `analyzeClip()` returns so the
  * IDLE → ANALYZING → RESULT/ERROR states can each be built honestly.
  */
-const MOCK_SCENARIO: 'fair' | 'bad' | 'inconclusive' | 'error' = 'bad';
+const MOCK_SCENARIO: MockScenario = 'bad';
 
 /** Simulated latency (ms) while mocking, so the loading state is real work. */
 const MOCK_DELAY_MS = 12_000;
@@ -52,6 +54,14 @@ export function isAnalyzeError(
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function analyzeMockScenario(
+  scenario: Exclude<MockScenario, 'error'>,
+  delayMs = 1_200,
+): Promise<AnalyzeResponse> {
+  await sleep(delayMs);
+  return MOCKS[scenario] as AnalyzeResponse;
+}
 
 /**
  * Analyze a clip. Returns mock data while USE_MOCK is true, otherwise POSTs

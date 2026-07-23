@@ -16,7 +16,7 @@ function stageIndex(elapsed: number): number {
   return i === -1 ? STAGES.length - 1 : i;
 }
 
-export function AnalyzingState({ previewUrl }: { previewUrl: string }) {
+export function AnalyzingState({ previewUrl }: { previewUrl: string | null }) {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -78,22 +78,23 @@ export function AnalyzingState({ previewUrl }: { previewUrl: string }) {
           </div>
         </div>
 
-        {/* the clip under review */}
-        <div className="border-t border-white/5 bg-black/40 p-1.5">
-          {/* Decorative muted loop of the user's own clip; progress is conveyed
-              by the live-region text above, so this is hidden from AT. */}
-          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-          <video
-            src={previewUrl}
-            className="mx-auto max-h-56 w-full rounded-xl object-contain"
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-hidden="true"
-            tabIndex={-1}
-          />
-        </div>
+        {previewUrl && (
+          <div className="border-t border-white/5 bg-black/40 p-1.5">
+            {/* Decorative muted loop of the user's own clip; progress is conveyed
+                by the live-region text above, so this is hidden from AT. */}
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video
+              src={previewUrl}
+              className="mx-auto max-h-56 w-full rounded-xl object-contain"
+              autoPlay
+              muted
+              loop
+              playsInline
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,14 +1,27 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, Megaphone, Zap } from 'lucide-react';
+import {
+  AlertCircle,
+  CircleCheck,
+  CircleHelp,
+  CircleX,
+  Megaphone,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
 
 import type {
   AnalyzeError,
   AnalyzeResponse,
   SportId,
 } from '@/types/contract';
-import { analyzeClip, isAnalyzeError } from '@/lib/api-client';
+import {
+  analyzeClip,
+  analyzeMockScenario,
+  isAnalyzeError,
+  type MockScenario,
+} from '@/lib/api-client';
 import {
   MAX_DURATION_S,
   checkFileMeta,
@@ -25,6 +38,36 @@ import { ResultView } from '@/components/result-view';
 import { ErrorView } from '@/components/error-view';
 
 type Phase = 'idle' | 'analyzing' | 'result' | 'error';
+type DemoScenario = Exclude<MockScenario, 'error'>;
+
+const DEMO_SCENARIOS: {
+  scenario: DemoScenario;
+  label: string;
+  Icon: LucideIcon;
+  className: string;
+}[] = [
+  {
+    scenario: 'fair',
+    label: 'Fair',
+    Icon: CircleCheck,
+    className:
+      'border-card_green/35 text-card_green hover:bg-card_green/10 hover:text-card_green',
+  },
+  {
+    scenario: 'bad',
+    label: 'Bad',
+    Icon: CircleX,
+    className:
+      'border-card_red/35 text-card_red hover:bg-card_red/10 hover:text-card_red',
+  },
+  {
+    scenario: 'inconclusive',
+    label: 'Inconclusive',
+    Icon: CircleHelp,
+    className:
+      'border-card_yellow/35 text-card_yellow hover:bg-card_yellow/10 hover:text-card_yellow',
+  },
+];
 
 function BrandMark() {
   return (
@@ -38,6 +81,39 @@ function BrandMark() {
       <span className="font-display text-lg font-bold tracking-tight">
         RefCheck<span className="text-primary"> AI</span>
       </span>
+    </div>
+  );
+}
+
+function DemoVerdictControls({
+  disabled,
+  onSelect,
+}: {
+  disabled: boolean;
+  onSelect: (scenario: DemoScenario) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="eyebrow">Animation test</span>
+        <span className="text-[11px] text-muted-foreground/70">mock only</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {DEMO_SCENARIOS.map(({ scenario, label, Icon, className }) => (
+          <Button
+            key={scenario}
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            onClick={() => onSelect(scenario)}
+            className={`h-auto min-h-10 flex-col gap-1 whitespace-normal bg-transparent px-2 py-2 text-[11px] leading-tight ${className}`}
+          >
+            <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+            {label}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -128,6 +204,7 @@ export default function Home() {
 
   const onAnalyze = useCallback(async () => {
     if (!file || !sport) return;
+    setBusy(true);
     setPhase('analyzing');
     const outcome = await analyzeClip({
       video: file,
@@ -141,7 +218,27 @@ export default function Home() {
       setResult(outcome);
       setPhase('result');
     }
+    setBusy(false);
   }, [file, sport, originalCall]);
+
+  const runDemoVerdict = useCallback(
+    async (scenario: DemoScenario) => {
+      setBusy(true);
+      setRejection(null);
+      setError(null);
+      setResult(null);
+      setPhase('analyzing');
+
+      const outcome = await analyzeMockScenario(scenario);
+      setResult({
+        ...outcome,
+        originalCall: originalCall.trim() || outcome.originalCall,
+      });
+      setPhase('result');
+      setBusy(false);
+    },
+    [originalCall],
+  );
 
   const reset = useCallback(() => {
     setPreview(null);
@@ -157,7 +254,7 @@ export default function Home() {
   const canAnalyze = Boolean(file && sport) && !busy;
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-4 py-6 sm:px-6 lg:py-8">
+    <main className="mx-auto flex min-h-[100dvh] w-full max-w-[1500px] flex-col px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
       <header className="mb-4 flex items-center justify-between">
         <BrandMark />
         <span className="eyebrow hidden sm:flex">
@@ -176,7 +273,151 @@ export default function Home() {
           className="w-full motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
         >
           {phase === 'idle' && (
-            <div className="grid items-center gap-8 py-4 lg:grid-cols-2 lg:gap-14">
+            <>
+              <div className="hidden gap-7 py-3 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(390px,460px)] lg:items-start">
+                <div className="space-y-5">
+                  <div className="max-w-3xl">
+                    <span className="eyebrow">Soccer · Football · Lacrosse</span>
+                    <h1 className="mt-3 font-display text-6xl font-bold leading-[1.02] tracking-tight xl:text-7xl">
+                      Was it the{' '}
+                      <span className="text-primary text-glow-green">right call?</span>
+                    </h1>
+                    <p className="mt-4 max-w-2xl text-pretty text-lg leading-8 text-muted-foreground">
+                      Drop a clip, pick the sport. RefCheck watches the play and
+                      rules on it, cited against the official rulebook.
+                    </p>
+                  </div>
+
+                  <div className="bezel">
+                    <div className="bezel-core flex min-h-[560px] flex-col overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3">
+                        <span className="eyebrow">Replay desk</span>
+                        <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary">
+                          Ready for review
+                        </span>
+                      </div>
+
+                      <div className="flex flex-1 flex-col p-5">
+                        {previewUrl ? (
+                          <div className="flex h-full flex-col gap-3">
+                            <div className="flex min-h-[420px] flex-1 items-center overflow-hidden rounded-xl border border-white/10 bg-black/55 p-1.5">
+                              {/* User-supplied clip with native controls — no
+                                  caption track for arbitrary uploads. */}
+                              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                              <video
+                                src={previewUrl}
+                                className="mx-auto max-h-[64vh] w-full rounded-lg object-contain"
+                                controls
+                                playsInline
+                                aria-label="Selected clip playback"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPreview(null);
+                                setFile(null);
+                              }}
+                              className="self-start rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                            >
+                              Choose a different clip
+                            </button>
+                          </div>
+                        ) : (
+                          <UploadZone
+                            onPick={acceptFile}
+                            busy={busy}
+                            className="min-h-[480px] flex-1"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <aside className="sticky top-6 space-y-4">
+                  <div className="flex items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 py-4">
+                    <div>
+                      <span className="eyebrow">Review controls</span>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Select context, then run the call.
+                      </p>
+                    </div>
+                    <Whistle className="w-24" />
+                  </div>
+
+                  {rejection && (
+                    <p
+                      className="flex items-start gap-1.5 rounded-xl border border-card_red/25 bg-card_red/10 px-3 py-2 text-sm text-card_red"
+                      role="alert"
+                    >
+                      <AlertCircle
+                        className="mt-0.5 h-4 w-4 shrink-0"
+                        strokeWidth={1.5}
+                        aria-hidden
+                      />
+                      {rejection}
+                    </p>
+                  )}
+
+                  <div className="bezel">
+                    <div className="bezel-core p-4">
+                      <SportSelector value={sport} onChange={setSport} />
+                    </div>
+                  </div>
+
+                  <div className="bezel">
+                    <div className="bezel-core p-4">
+                      <label
+                        htmlFor="original-call-desktop"
+                        className="eyebrow mb-2.5 block"
+                      >
+                        The call on the field{' '}
+                        <span className="font-normal normal-case tracking-normal text-muted-foreground/70">
+                          — optional
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <Megaphone
+                          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                          strokeWidth={1.5}
+                          aria-hidden
+                        />
+                        <input
+                          id="original-call-desktop"
+                          type="text"
+                          value={originalCall}
+                          onChange={(e) => setOriginalCall(e.target.value)}
+                          placeholder="e.g. Offside — goal disallowed"
+                          className="w-full rounded-xl border border-white/10 bg-white/[0.03] py-2.5 pl-9 pr-3 text-sm placeholder:text-muted-foreground/60 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bezel">
+                    <div className="bezel-core space-y-4 p-4">
+                      <SampleClips onSelect={loadSample} disabled={busy} />
+                      <DemoVerdictControls
+                        disabled={busy}
+                        onSelect={runDemoVerdict}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={onAnalyze}
+                    disabled={!canAnalyze}
+                    size="lg"
+                    className="h-12 w-full text-base"
+                  >
+                    <Zap className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                    Check the call
+                  </Button>
+                </aside>
+              </div>
+
+              <div className="grid items-center gap-8 py-4 lg:hidden">
               {/* hero */}
               <div className="order-1 text-center lg:text-left">
                 <span className="eyebrow justify-center lg:justify-start">
@@ -273,6 +514,11 @@ export default function Home() {
 
                     <SampleClips onSelect={loadSample} disabled={busy} />
 
+                    <DemoVerdictControls
+                      disabled={busy}
+                      onSelect={runDemoVerdict}
+                    />
+
                     <Button
                       onClick={onAnalyze}
                       disabled={!canAnalyze}
@@ -285,17 +531,18 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            </>
           )}
 
-          {phase === 'analyzing' && previewUrl && (
-            <div className="mx-auto max-w-xl">
+          {phase === 'analyzing' && (
+            <div className="mx-auto w-full max-w-5xl">
               <AnalyzingState previewUrl={previewUrl} />
             </div>
           )}
 
           {phase === 'result' && result && (
-            <div className="mx-auto max-w-xl">
+            <div className="mx-auto w-full max-w-6xl">
               <ResultView result={result} previewUrl={previewUrl} onReset={reset} />
             </div>
           )}
