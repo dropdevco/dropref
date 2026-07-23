@@ -1,0 +1,21 @@
+{
+  "sport": "soccer",
+  "verdict": "FAIR_CALL",
+  "confidence": "HIGH",
+  "playDescription": "As the through-ball is played, the attacker has already broken past the defensive line. At the frame of the pass, the attacker's front foot and torso are a clear half-metre beyond the second-to-last defender, with open grass between them before the ball is struck.",
+  "reasoning": "At the moment the ball is played the attacker is beyond the second-to-last defender in the opponents' half and becomes active by receiving the ball and scoring. That satisfies both the position and the involvement tests for an offside offence, so the assistant referee's flag was correct.",
+  "rulesCited": [
+    {
+      "code": "LOTG-11.1",
+      "title": "Offside position",
+      "text": "A player is in an offside position if any part of the head, body or feet is in the opponents' half and closer to the opponents' goal line than both the ball and the second-to-last opponent."
+    },
+    {
+      "code": "LOTG-11.3",
+      "title": "Offside offence — involvement",
+      "text": "A player in an offside position is penalised only if, at the moment the ball is played by a teammate, they become involved in active play by interfering with play, interfering with an opponent, or gaining an advantage."
+    }
+  ],
+  "originalCall": "Offside — goal disallowed",
+  "processingMs": 12210
+}

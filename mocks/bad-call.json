@@ -1,0 +1,21 @@
+{
+  "sport": "soccer",
+  "verdict": "BAD_CALL",
+  "confidence": "HIGH",
+  "playDescription": "The attacker makes a run in behind the last defender as the through-ball is played. Freezing the frame at the moment of the pass, the attacker's head, torso, and trailing foot are clearly level with the second-to-last defender — no part of the body that can legally play the ball is beyond the defensive line.",
+  "reasoning": "Offside is judged at the exact moment the ball is played by a teammate, not when it is received. At that instant the attacker is level with the defender, and a player level with the second-to-last opponent is not in an offside position. The assistant referee's flag was therefore incorrect; the goal should have stood.",
+  "rulesCited": [
+    {
+      "code": "LOTG-11.1",
+      "title": "Offside position",
+      "text": "A player is in an offside position if any part of the head, body or feet is in the opponents' half and closer to the opponents' goal line than both the ball and the second-to-last opponent. A player level with the second-to-last opponent or level with the last two opponents is not offside."
+    },
+    {
+      "code": "LOTG-11.2",
+      "title": "Offside offence — moment of judgement",
+      "text": "The offside position is assessed at the moment the ball is played or touched by a teammate, not at the moment the ball is received."
+    }
+  ],
+  "originalCall": "Offside — goal disallowed",
+  "processingMs": 11840
+}

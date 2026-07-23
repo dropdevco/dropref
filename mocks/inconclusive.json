@@ -1,0 +1,16 @@
+{
+  "sport": "soccer",
+  "verdict": "INCONCLUSIVE",
+  "confidence": "LOW",
+  "playDescription": "The through-ball is played from the left and the attacker runs onto it near the penalty arc. The camera is panning and the second-to-last defender is partially out of frame at the decisive moment, so the relative positions of attacker and defender at the instant of the pass cannot be established with confidence.",
+  "reasoning": "A definitive offside judgement requires a clear view of both the attacker and the second-to-last defender at the exact frame the ball is played. This single broadcast angle does not provide that — the defender leaves frame and there is motion blur across the key frame — so neither a fair nor a bad call can be supported. A calibrated offside line or a second angle would be needed.",
+  "rulesCited": [
+    {
+      "code": "LOTG-11.2",
+      "title": "Offside offence — moment of judgement",
+      "text": "The offside position is assessed at the moment the ball is played or touched by a teammate, not at the moment the ball is received."
+    }
+  ],
+  "originalCall": "Offside — goal disallowed",
+  "processingMs": 12680
+}
