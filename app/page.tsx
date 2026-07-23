@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, Sparkles } from 'lucide-react';
+import { AlertCircle, Megaphone, Zap } from 'lucide-react';
 
 import type {
   AnalyzeError,
@@ -16,6 +16,7 @@ import {
 } from '@/components/clip';
 import type { SportSample } from '@/components/sports';
 import { Button } from '@/components/ui/button';
+import { Whistle } from '@/components/whistle';
 import { UploadZone } from '@/components/upload-zone';
 import { SportSelector } from '@/components/sport-selector';
 import { SampleClips } from '@/components/sample-clips';
@@ -24,6 +25,22 @@ import { ResultView } from '@/components/result-view';
 import { ErrorView } from '@/components/error-view';
 
 type Phase = 'idle' | 'analyzing' | 'result' | 'error';
+
+function BrandMark() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-b from-white/10 to-white/[0.02] ring-1 ring-inset ring-white/10">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+          <circle cx="12" cy="12" r="9.5" fill="none" stroke="#f8fafc" strokeWidth="1.6" />
+          <path d="M7.5 12.4l3 3 6-6.4" fill="none" stroke="hsl(152 62% 46%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <span className="font-display text-lg font-bold tracking-tight">
+        RefCheck<span className="text-primary"> AI</span>
+      </span>
+    </div>
+  );
+}
 
 export default function Home() {
   const [phase, setPhase] = useState<Phase>('idle');
@@ -140,122 +157,158 @@ export default function Home() {
   const canAnalyze = Boolean(file && sport) && !busy;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-4 py-6 sm:py-10">
-      <header className="mb-6 text-center">
-        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" aria-hidden />
-          AI instant replay
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          RefCheck AI
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Was it the right call? Upload a clip and let the rulebook decide.
-        </p>
+    <main className="mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-4 py-6 sm:px-6 lg:py-8">
+      <header className="mb-4 flex items-center justify-between">
+        <BrandMark />
+        <span className="eyebrow hidden sm:flex">
+          <Zap className="h-3.5 w-3.5 text-primary" strokeWidth={1.5} aria-hidden />
+          Instant replay, refereed by AI
+        </span>
       </header>
 
       <section
         ref={stageRef}
         tabIndex={-1}
-        className="flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="flex flex-1 items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <div
           key={phase}
-          className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
+          className="w-full motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
         >
-        {phase === 'idle' && (
-          <div className="space-y-6">
-            {previewUrl ? (
-              <div className="space-y-2">
-                <div className="overflow-hidden rounded-xl border bg-black">
-                  {/* User-supplied clip with native controls — no caption
-                      track is available for arbitrary uploads, so we exempt
-                      this from jsx-a11y/media-has-caption rather than fake
-                      one. */}
-                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                  <video
-                    src={previewUrl}
-                    className="mx-auto max-h-64 w-full object-contain"
-                    controls
-                    playsInline
-                    aria-label="Selected clip playback"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPreview(null);
-                    setFile(null);
-                  }}
-                  className="rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  Choose a different clip
-                </button>
-              </div>
-            ) : (
-              <UploadZone onPick={acceptFile} busy={busy} />
-            )}
-
-            {rejection && (
-              <p
-                className="flex items-start gap-1.5 text-sm text-red-600 dark:text-red-400"
-                role="alert"
-              >
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                {rejection}
-              </p>
-            )}
-
-            <SportSelector value={sport} onChange={setSport} />
-
-            <div>
-              <label
-                htmlFor="original-call"
-                className="mb-2 block text-sm font-medium"
-              >
-                What was the call on the field?{' '}
-                <span className="font-normal text-muted-foreground">
-                  (optional)
+          {phase === 'idle' && (
+            <div className="grid items-center gap-8 py-4 lg:grid-cols-2 lg:gap-14">
+              {/* hero */}
+              <div className="order-1 text-center lg:text-left">
+                <span className="eyebrow justify-center lg:justify-start">
+                  ⚽ Soccer · 🏈 Football · 🥍 Lacrosse
                 </span>
-              </label>
-              <input
-                id="original-call"
-                type="text"
-                value={originalCall}
-                onChange={(e) => setOriginalCall(e.target.value)}
-                placeholder="e.g. Offside — goal disallowed"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
+                <h1 className="mt-4 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+                  Was it the{' '}
+                  <span className="text-primary text-glow-green">right call?</span>
+                </h1>
+                <p className="mx-auto mt-4 max-w-md text-pretty text-base text-muted-foreground lg:mx-0">
+                  Drop a clip, pick the sport. RefCheck watches the play and
+                  rules on it — cited against the official rulebook, in seconds.
+                </p>
+                <div className="mt-8 hidden justify-center lg:flex lg:justify-start">
+                  <Whistle className="w-52" />
+                </div>
+              </div>
+
+              {/* interaction panel */}
+              <div className="order-2 mx-auto w-full max-w-md lg:mx-0 lg:ml-auto">
+                <div className="bezel">
+                  <div className="bezel-core space-y-5 p-5">
+                    {previewUrl ? (
+                      <div className="space-y-2">
+                        <div className="overflow-hidden rounded-xl border border-white/10 bg-black/50 p-1.5">
+                          {/* User-supplied clip with native controls — no
+                              caption track for arbitrary uploads. */}
+                          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                          <video
+                            src={previewUrl}
+                            className="mx-auto max-h-56 w-full rounded-lg object-contain"
+                            controls
+                            playsInline
+                            aria-label="Selected clip playback"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreview(null);
+                            setFile(null);
+                          }}
+                          className="rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          Choose a different clip
+                        </button>
+                      </div>
+                    ) : (
+                      <UploadZone onPick={acceptFile} busy={busy} />
+                    )}
+
+                    {rejection && (
+                      <p
+                        className="flex items-start gap-1.5 text-sm text-card_red"
+                        role="alert"
+                      >
+                        <AlertCircle
+                          className="mt-0.5 h-4 w-4 shrink-0"
+                          strokeWidth={1.5}
+                          aria-hidden
+                        />
+                        {rejection}
+                      </p>
+                    )}
+
+                    <SportSelector value={sport} onChange={setSport} />
+
+                    <div>
+                      <label
+                        htmlFor="original-call"
+                        className="eyebrow mb-2.5 block"
+                      >
+                        The call on the field{' '}
+                        <span className="font-normal normal-case tracking-normal text-muted-foreground/70">
+                          — optional
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <Megaphone
+                          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                          strokeWidth={1.5}
+                          aria-hidden
+                        />
+                        <input
+                          id="original-call"
+                          type="text"
+                          value={originalCall}
+                          onChange={(e) => setOriginalCall(e.target.value)}
+                          placeholder="e.g. Offside — goal disallowed"
+                          className="w-full rounded-xl border border-white/10 bg-white/[0.03] py-2.5 pl-9 pr-3 text-sm placeholder:text-muted-foreground/60 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        />
+                      </div>
+                    </div>
+
+                    <SampleClips onSelect={loadSample} disabled={busy} />
+
+                    <Button
+                      onClick={onAnalyze}
+                      disabled={!canAnalyze}
+                      size="lg"
+                      className="w-full"
+                    >
+                      <Zap className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                      Check the call
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
 
-            <SampleClips onSelect={loadSample} disabled={busy} />
+          {phase === 'analyzing' && previewUrl && (
+            <div className="mx-auto max-w-xl">
+              <AnalyzingState previewUrl={previewUrl} />
+            </div>
+          )}
 
-            <Button
-              onClick={onAnalyze}
-              disabled={!canAnalyze}
-              size="lg"
-              className="w-full"
-            >
-              Analyze the call
-            </Button>
-          </div>
-        )}
+          {phase === 'result' && result && (
+            <div className="mx-auto max-w-xl">
+              <ResultView result={result} previewUrl={previewUrl} onReset={reset} />
+            </div>
+          )}
 
-        {phase === 'analyzing' && previewUrl && (
-          <AnalyzingState previewUrl={previewUrl} />
-        )}
-
-        {phase === 'result' && result && (
-          <ResultView result={result} previewUrl={previewUrl} onReset={reset} />
-        )}
-
-        {phase === 'error' && error && (
-          <ErrorView error={error} onRetry={reset} />
-        )}
+          {phase === 'error' && error && (
+            <div className="mx-auto max-w-xl">
+              <ErrorView error={error} onRetry={reset} />
+            </div>
+          )}
         </div>
       </section>
 
-      <footer className="mt-8 text-center text-[11px] text-muted-foreground">
+      <footer className="mt-8 text-center text-[11px] text-muted-foreground/70">
         RefCheck AI · verdicts are informational, not official rulings.
       </footer>
     </main>

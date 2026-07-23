@@ -15,7 +15,17 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'sans-serif'],
+      },
+      transitionTimingFunction: {
+        smooth: 'cubic-bezier(0.32, 0.72, 0, 1)',
+      },
       colors: {
+        card_green: 'hsl(var(--card-green) / <alpha-value>)',
+        card_yellow: 'hsl(var(--card-yellow) / <alpha-value>)',
+        card_red: 'hsl(var(--card-red) / <alpha-value>)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
