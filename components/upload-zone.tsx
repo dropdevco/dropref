@@ -39,6 +39,8 @@ export function UploadZone({
       onClick={() => inputRef.current?.click()}
       role="button"
       tabIndex={0}
+      aria-label="Upload a clip. Drop a video file here or activate to browse. MP4, MOV or WebM, up to 20MB, 15 seconds or shorter."
+      aria-disabled={busy || undefined}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -69,6 +71,8 @@ export function UploadZone({
         ref={inputRef}
         type="file"
         accept={ACCEPT_ATTR}
+        aria-label="Choose a video clip to upload"
+        tabIndex={-1}
         className="hidden"
         onChange={(e) => {
           handleFiles(e.target.files);

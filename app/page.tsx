@@ -168,12 +168,17 @@ export default function Home() {
             {previewUrl ? (
               <div className="space-y-2">
                 <div className="overflow-hidden rounded-xl border bg-black">
+                  {/* User-supplied clip with native controls — no caption
+                      track is available for arbitrary uploads, so we exempt
+                      this from jsx-a11y/media-has-caption rather than fake
+                      one. */}
                   {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                   <video
                     src={previewUrl}
                     className="mx-auto max-h-64 w-full object-contain"
                     controls
                     playsInline
+                    aria-label="Selected clip playback"
                   />
                 </div>
                 <button
@@ -182,7 +187,7 @@ export default function Home() {
                     setPreview(null);
                     setFile(null);
                   }}
-                  className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  className="rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   Choose a different clip
                 </button>
@@ -193,7 +198,7 @@ export default function Home() {
 
             {rejection && (
               <p
-                className="flex items-start gap-1.5 text-sm text-destructive"
+                className="flex items-start gap-1.5 text-sm text-red-600 dark:text-red-400"
                 role="alert"
               >
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
