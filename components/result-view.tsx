@@ -42,13 +42,21 @@ export function ResultView({
   previewUrl: string | null;
   onReset: () => void;
 }) {
+  const videoSrc = result.annotatedVideoBase64 
+    ? `data:video/mp4;base64,${result.annotatedVideoBase64}`
+    : previewUrl;
+
   return (
     <div className="space-y-6">
-      {previewUrl && (
+      {videoSrc && (
         <div className="overflow-hidden rounded-xl border bg-black">
+          <div className="bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground flex items-center justify-center gap-1.5">
+            <Eye className="h-3.5 w-3.5" />
+            {result.annotatedVideoBase64 ? 'Computer Vision Processed' : 'Original Video'}
+          </div>
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
-            src={previewUrl}
+            src={videoSrc}
             className="mx-auto max-h-64 w-full object-contain"
             controls
             playsInline

@@ -15,7 +15,7 @@ import errorMock from '@/mocks/error.json';
  * Flip this ONE line to switch the whole UI between mock data and the real
  * /api/analyze endpoint. Everything else stays the same.
  */
-export const USE_MOCK = true;
+export const USE_MOCK = false;
 
 /**
  * While USE_MOCK is true, choose which fixture `analyzeClip()` returns so the

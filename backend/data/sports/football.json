@@ -1,0 +1,208 @@
+{
+  "id": "football",
+  "displayName": "American Football",
+  "governingBody": "NFL Rulebook 2024",
+  "officialTitle": "referee",
+  "analystPersona": "an American football officiating analyst",
+  "observationHints": "Observe exactly when control of the ball is established, the number of feet or body parts touching the ground in bounds, the nature and timing of contact between defensive back and receiver, and the specific target area (head/neck) for hits.",
+  "commonCalls": [
+    "pass interference",
+    "holding",
+    "targeting",
+    "catch",
+    "incomplete"
+  ],
+  "rules": [
+    {
+      "code": "Rule 8, Section 1, Article 3",
+      "title": "Completed Pass",
+      "text": "A forward pass is complete (by the offense) if a player, who is inbounds: secures control of the ball in his hands or arms prior to the ball touching the ground; and touches the ground inbounds with both feet or with any part of his body other than his hands; and after (a) and (b) have been fulfilled, performs any act common to the game (e.g., tuck the ball away, extend it forward, take an additional step, turn upfield, or avoid or ward off an opponent), or he maintains control of the ball long enough to do so.",
+      "keywords": [
+        "catch",
+        "control",
+        "two feet",
+        "inbounds",
+        "football move",
+        "survive the ground"
+      ],
+      "callTypes": [
+        "catch",
+        "incomplete"
+      ]
+    },
+    {
+      "code": "Rule 8, Section 1, Article 4",
+      "title": "Incomplete Pass",
+      "text": "Any forward pass is incomplete and the ball is dead immediately if the pass strikes the ground or goes out of bounds. An incomplete pass is a loss of down. If a player goes to the ground in the act of catching a pass, he must maintain control of the ball until after his initial contact with the ground, whether in the field of play or the end zone.",
+      "keywords": [
+        "incomplete",
+        "drop",
+        "ground",
+        "out of bounds",
+        "maintain control",
+        "survive"
+      ],
+      "callTypes": [
+        "incomplete"
+      ]
+    },
+    {
+      "code": "Rule 8, Section 5, Article 2",
+      "title": "Defensive Pass Interference",
+      "text": "It is pass interference by either team when any act by a player more than one yard beyond the line of scrimmage significantly hinders an eligible player's opportunity to catch the ball. Defensive pass interference rules apply from the time the ball is thrown until the ball is touched.",
+      "keywords": [
+        "pass interference",
+        "DPI",
+        "hinder",
+        "opportunity to catch",
+        "contact",
+        "thrown"
+      ],
+      "callTypes": [
+        "pass interference"
+      ]
+    },
+    {
+      "code": "Rule 8, Section 5, Article 2 (Restrictions)",
+      "title": "Acts that are Pass Interference",
+      "text": "Acts that are pass interference include, but are not limited to: (a) Contact by a player who is not playing the ball that restricts the opponent's opportunity to make the catch; (b) Playing through the back of an opponent in an attempt to make a play on the ball; (c) Grabbing an opponent's arm(s) in such a manner that restricts his opportunity to catch a pass; (d) Extending an arm across the body of an opponent, thus restricting his ability to catch a pass, and regardless of whether the player committing such act is playing the ball.",
+      "keywords": [
+        "pass interference",
+        "playing through back",
+        "grabbing arm",
+        "restricting",
+        "early contact",
+        "arm across body"
+      ],
+      "callTypes": [
+        "pass interference"
+      ]
+    },
+    {
+      "code": "Rule 8, Section 5, Article 3",
+      "title": "Permissible Acts (Not Pass Interference)",
+      "text": "Acts that do not occur more than one yard beyond the line of scrimmage are not pass interference, but could be offensive or defensive holding. Incidental contact by an opponent's hands, arms, or body when both players are competing for the ball, or neither player is looking for the ball. If there is any question whether player contact is incidental, the ruling should be no interference.",
+      "keywords": [
+        "incidental contact",
+        "no interference",
+        "competing for ball",
+        "tangled feet"
+      ],
+      "callTypes": [
+        "pass interference"
+      ]
+    },
+    {
+      "code": "Rule 12, Section 1, Article 3",
+      "title": "Offensive Holding",
+      "text": "It is a foul for offensive holding if an offensive player: (a) grabs or tackles an opponent; (b) hooks, jerks, twists, or turns him; or (c) pulls him to the ground.",
+      "keywords": [
+        "offensive holding",
+        "holding",
+        "grab",
+        "jersey",
+        "hook",
+        "turn",
+        "pull to ground"
+      ],
+      "callTypes": [
+        "holding"
+      ]
+    },
+    {
+      "code": "Rule 12, Section 1, Article 6",
+      "title": "Defensive Holding",
+      "text": "It is a foul for defensive holding if a defensive player tackles or holds any opponent other than a runner, except as permitted in Article 5. For example, a defensive player may not grab an eligible receiver's jersey prior to the pass being thrown.",
+      "keywords": [
+        "defensive holding",
+        "holding",
+        "grab",
+        "jersey",
+        "prior to pass",
+        "receiver"
+      ],
+      "callTypes": [
+        "holding"
+      ]
+    },
+    {
+      "code": "Rule 12, Section 2, Article 9",
+      "title": "Use of Helmet (Targeting)",
+      "text": "It is a foul if a player: (a) lowers his head and makes forcible contact with his helmet against an opponent; or (b) uses any part of his helmet or facemask to butt or ram an opponent.",
+      "keywords": [
+        "targeting",
+        "helmet",
+        "forcible contact",
+        "crown",
+        "butt",
+        "ram",
+        "lower head"
+      ],
+      "callTypes": [
+        "targeting"
+      ]
+    },
+    {
+      "code": "Rule 12, Section 2, Article 9 (Defenseless Player)",
+      "title": "Players in a Defenseless Posture",
+      "text": "It is a foul if a player initiates unnecessary contact against a player who is in a defenseless posture. Prohibited contact includes: (1) forcibly hitting the defenseless player's head or neck area with the helmet, facemask, forearm, or shoulder; (2) lowering the head and making forcible contact with any part of the helmet against any part of the defenseless player's body.",
+      "keywords": [
+        "targeting",
+        "defenseless player",
+        "head and neck",
+        "unnecessary roughness",
+        "hit to head"
+      ],
+      "callTypes": [
+        "targeting"
+      ]
+    },
+    {
+      "code": "Rule 8, Section 2, Article 1",
+      "title": "Intentional Grounding",
+      "text": "It is a foul for intentional grounding if a passer, facing an imminent loss of yardage because of pressure from the defense, throws a forward pass without a realistic chance of completion.",
+      "keywords": [
+        "intentional grounding",
+        "pocket",
+        "pressure",
+        "realistic chance",
+        "line of scrimmage",
+        "outside tackle box"
+      ],
+      "callTypes": [
+        "incomplete"
+      ]
+    },
+    {
+      "code": "Rule 12, Section 2, Article 12",
+      "title": "Roughing the Passer",
+      "text": "Because the act of passing often puts the quarterback in a position where he is particularly vulnerable to injury, special rules against roughing the passer apply. A rushing defender is prohibited from committing such intimidating and punishing acts as stuffing a passer into the ground or unnecessarily wrestling or driving him down.",
+      "keywords": [
+        "roughing the passer",
+        "late hit",
+        "body weight",
+        "quarterback",
+        "driving into ground",
+        "vulnerable"
+      ],
+      "callTypes": [
+        "targeting"
+      ]
+    },
+    {
+      "code": "Rule 11, Section 3, Article 1",
+      "title": "Touchdown",
+      "text": "A touchdown is scored when the ball is on, above, or behind the plane of the opponents' goal line and is in possession of a runner who has advanced from the field of play into the end zone, or when a receiver catches a pass in the end zone.",
+      "keywords": [
+        "touchdown",
+        "plane of goal line",
+        "break the plane",
+        "end zone",
+        "possession"
+      ],
+      "callTypes": [
+        "catch"
+      ]
+    }
+  ]
+}

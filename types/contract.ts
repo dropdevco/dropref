@@ -17,6 +17,7 @@ export interface AnalyzeResponse {
   rulesCited: CitedRule[];
   originalCall: string | null;
   processingMs: number;
+  annotatedVideoBase64?: string;
 }
 
 export type ErrorCode =

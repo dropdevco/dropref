@@ -1,0 +1,210 @@
+{
+  "id": "soccer",
+  "displayName": "Soccer",
+  "governingBody": "IFAB Laws of the Game 2024/25",
+  "officialTitle": "referee",
+  "analystPersona": "a football (soccer) officiating analyst",
+  "observationHints": "Note the position of the second-last defender at the moment the ball is played, arm position relative to the body (is it making the body unnaturally bigger?), and whether contact by a defender preceded the attacker playing the ball.",
+  "commonCalls": [
+    "offside",
+    "handball",
+    "foul",
+    "dive",
+    "penalty"
+  ],
+  "rules": [
+    {
+      "code": "Law 11.1",
+      "title": "Offside Position",
+      "text": "A player is in an offside position if: any part of the head, body or feet is in the opponents' half (excluding the halfway line) and any part of the head, body or feet is nearer to the opponents' goal line than both the ball and the second-last opponent.",
+      "keywords": [
+        "offside",
+        "second-last defender",
+        "level",
+        "nearer to goal",
+        "head",
+        "body",
+        "feet",
+        "position"
+      ],
+      "callTypes": [
+        "offside"
+      ]
+    },
+    {
+      "code": "Law 11.2",
+      "title": "Offside Offence - Interfering",
+      "text": "A player in an offside position at the moment the ball is played or touched by a team-mate is only penalised on becoming involved in active play by: interfering with play by playing or touching a ball passed or touched by a team-mate, or interfering with an opponent.",
+      "keywords": [
+        "interfering",
+        "active play",
+        "ball played",
+        "touched",
+        "team-mate",
+        "pass"
+      ],
+      "callTypes": [
+        "offside"
+      ]
+    },
+    {
+      "code": "Law 12.1",
+      "title": "Direct Free Kick - Careless, Reckless, Excessive Force",
+      "text": "A direct free kick is awarded if a player commits any of the following offences against an opponent in a manner considered by the referee to be careless, reckless or using excessive force: charges, jumps at, kicks, pushes, strikes, tackles, or trips.",
+      "keywords": [
+        "foul",
+        "careless",
+        "reckless",
+        "excessive force",
+        "tackle",
+        "trip",
+        "push",
+        "contact"
+      ],
+      "callTypes": [
+        "foul",
+        "penalty"
+      ]
+    },
+    {
+      "code": "Law 12.1",
+      "title": "Handling the ball - Deliberate",
+      "text": "It is an offence if a player deliberately touches the ball with their hand/arm, for example moving the hand/arm towards the ball.",
+      "keywords": [
+        "handball",
+        "deliberate",
+        "hand",
+        "arm",
+        "moving towards",
+        "touch"
+      ],
+      "callTypes": [
+        "handball"
+      ]
+    },
+    {
+      "code": "Law 12.1",
+      "title": "Handling the ball - Unnaturally Bigger",
+      "text": "It is an offence if a player touches the ball with their hand/arm when it has made their body unnaturally bigger. A player is considered to have made their body unnaturally bigger when the position of their hand/arm is not a consequence of, or justifiable by, the player's body movement for that specific situation.",
+      "keywords": [
+        "handball",
+        "unnaturally bigger",
+        "arm position",
+        "silhouette",
+        "justifiable movement"
+      ],
+      "callTypes": [
+        "handball"
+      ]
+    },
+    {
+      "code": "Law 12.1",
+      "title": "Handling the ball - Exceptions",
+      "text": "It is not an offence if the ball touches a player's hand/arm: directly from the player's own head or body; directly from the head or body of another player who is close; if the hand/arm is close to the body and does not make the body unnaturally bigger; when a player falls and the hand/arm is between the body and the ground to support the body.",
+      "keywords": [
+        "handball",
+        "exception",
+        "deflection",
+        "close to body",
+        "support the body",
+        "falling"
+      ],
+      "callTypes": [
+        "handball"
+      ]
+    },
+    {
+      "code": "Law 12.3",
+      "title": "Simulation (Dive)",
+      "text": "Attempts to deceive the referee e.g. by feigning injury or pretending to have been fouled (simulation) must be sanctioned as unsporting behaviour which is an offence punishable by a yellow card.",
+      "keywords": [
+        "simulation",
+        "dive",
+        "feigning injury",
+        "deceive",
+        "pretending",
+        "no contact"
+      ],
+      "callTypes": [
+        "dive"
+      ]
+    },
+    {
+      "code": "Law 14.1",
+      "title": "The Penalty Kick",
+      "text": "A penalty kick is awarded if a player commits a direct free kick offence inside their penalty area or off the field as part of play as outlined in Laws 12 and 13.",
+      "keywords": [
+        "penalty kick",
+        "penalty area",
+        "inside the box",
+        "direct free kick offence",
+        "foul in box"
+      ],
+      "callTypes": [
+        "penalty"
+      ]
+    },
+    {
+      "code": "Law 12.1",
+      "title": "Holding an opponent",
+      "text": "A direct free kick is awarded if a player holds an opponent.",
+      "keywords": [
+        "holding",
+        "foul",
+        "grab",
+        "shirt pull",
+        "arm"
+      ],
+      "callTypes": [
+        "foul",
+        "penalty"
+      ]
+    },
+    {
+      "code": "Law 12.1",
+      "title": "Impeding with contact",
+      "text": "A direct free kick is awarded if a player impedes an opponent with contact.",
+      "keywords": [
+        "impede",
+        "obstruction",
+        "contact",
+        "block",
+        "path"
+      ],
+      "callTypes": [
+        "foul",
+        "penalty"
+      ]
+    },
+    {
+      "code": "Law 12.2",
+      "title": "Impeding without contact",
+      "text": "An indirect free kick is awarded if a player impedes the progress of an opponent without any contact being made.",
+      "keywords": [
+        "impede",
+        "obstruction",
+        "no contact",
+        "indirect",
+        "block"
+      ],
+      "callTypes": [
+        "foul"
+      ]
+    },
+    {
+      "code": "Law 11.2",
+      "title": "Offside Offence - Gaining an advantage",
+      "text": "A player in an offside position is penalised if they gain an advantage by playing the ball or interfering with an opponent when it has rebounded or been deflected off the goalpost, crossbar, match official or an opponent, or has been deliberately saved by any opponent.",
+      "keywords": [
+        "offside",
+        "rebound",
+        "deflection",
+        "save",
+        "gaining advantage"
+      ],
+      "callTypes": [
+        "offside"
+      ]
+    }
+  ]
+}

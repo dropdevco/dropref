@@ -1,87 +1,79 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-
-import { analyze } from '@/lib/ai/pipeline';
-import type {
-  AnalyzeError,
-  AnalyzeResponse,
-  ErrorCode,
-  SportId,
-} from '@/types/contract';
+import { runAnalysisPipeline } from '../../../backend/ai/pipeline';
+import { SportId } from '../../../types/contract';
 
 export const maxDuration = 60;
 export const runtime = 'nodejs';
 
-/**
- * POST /api/analyze  (multipart/form-data)
- *   - video:        File     (required)   the clip to analyze
- *   - sport:        SportId  (required)   'soccer' | 'football' | 'lacrosse'
- *   - originalCall: string   (optional)   what the ref called on the field
- *
- * Request validation below is REAL and owned jointly with the contract.
- * The `analyze()` call is Dev B's — its body currently throws NOT_IMPLEMENTED.
- * Dev B: implement the pipeline, not this handler's validation/wiring.
- */
-
-const MAX_BYTES = 20 * 1024 * 1024; // 20MB
-const SPORT_IDS = ['soccer', 'football', 'lacrosse'] as const;
-
-/** Build a typed error response with an appropriate HTTP status. */
-function fail(code: ErrorCode, message: string, status: number) {
-  const body: AnalyzeError = { error: message, code };
-  return NextResponse.json(body, { status });
-}
-
-const fieldsSchema = z.object({
-  sport: z.enum(SPORT_IDS, {
-    errorMap: () => ({ message: 'Unsupported or missing sport.' }),
-  }),
-  originalCall: z
-    .string()
-    .trim()
-    .max(500)
-    .optional()
-    .transform((v) => (v && v.length > 0 ? v : null)),
-});
-
-export async function POST(request: Request) {
-  let form: FormData;
+export async function POST(req: Request) {
   try {
-    form = await request.formData();
-  } catch {
-    return fail('BAD_FORMAT', 'Request must be multipart/form-data.', 400);
-  }
+    const formData = await req.formData();
+    const sport = formData.get('sport') as string;
+    const originalCall = formData.get('originalCall') as string | null;
+    const videoFile = formData.get('video') as File;
 
-  // --- sport + originalCall ------------------------------------------------
-  const parsed = fieldsSchema.safeParse({
-    sport: form.get('sport'),
-    originalCall: form.get('originalCall') ?? undefined,
-  });
-  if (!parsed.success) {
-    return fail('UNSUPPORTED_SPORT', 'Unsupported or missing sport.', 400);
-  }
-  const sport = parsed.data.sport as SportId;
-  const originalCall = parsed.data.originalCall ?? null;
+    if (!sport || !videoFile) {
+      return NextResponse.json(
+        { error: 'Missing required fields', code: 'BAD_FORMAT' },
+        { status: 400 }
+      );
+    }
 
-  // --- video file ----------------------------------------------------------
-  const video = form.get('video');
-  if (!(video instanceof File) || video.size === 0) {
-    return fail('BAD_FORMAT', 'A video file is required.', 400);
-  }
-  if (!video.type.startsWith('video/')) {
-    return fail('BAD_FORMAT', 'Uploaded file must be a video.', 415);
-  }
-  if (video.size > MAX_BYTES) {
-    return fail('FILE_TOO_LARGE', 'Video must be 20MB or smaller.', 413);
-  }
+    const arrayBuffer = await videoFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const videoBase64 = buffer.toString('base64');
+    const videoMimeType = videoFile.type || 'video/mp4';
 
-  // --- run the pipeline (Dev B) -------------------------------------------
-  try {
-    const result: AnalyzeResponse = await analyze(video, sport, originalCall);
-    return NextResponse.json(result, { status: 200 });
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : 'Analysis failed unexpectedly.';
-    return fail('MODEL_ERROR', message, 500);
+    let cvMetadata = null;
+    let finalVideoBase64 = videoBase64;
+
+    try {
+      const cvFormData = new FormData();
+      cvFormData.append('video', videoFile);
+
+      const cvRes = await fetch('http://127.0.0.1:8000/track', {
+        method: 'POST',
+        body: cvFormData,
+      });
+
+      if (cvRes.ok) {
+        const cvData = await cvRes.json();
+        cvMetadata = cvData.metadata;
+        if (cvData.videoBase64) {
+          finalVideoBase64 = cvData.videoBase64;
+        }
+      } else {
+        console.warn('CV service returned error:', cvRes.status);
+      }
+    } catch (e) {
+      console.warn('CV service unreachable. Proceeding with raw video.', e);
+    }
+
+    const response = await runAnalysisPipeline(
+      sport as SportId,
+      finalVideoBase64,
+      videoMimeType,
+      originalCall || null,
+      cvMetadata
+    );
+
+    if (finalVideoBase64 !== videoBase64) {
+      response.annotatedVideoBase64 = finalVideoBase64;
+    }
+
+    return NextResponse.json(response);
+
+  } catch (error: any) {
+    console.error('Analysis API Error:', error);
+    
+    // Check if it's a known error based on error text
+    let code = 'MODEL_ERROR';
+    if (error.message?.includes('FILE_TOO_LARGE')) code = 'FILE_TOO_LARGE';
+    if (error.message?.includes('not found')) code = 'UNSUPPORTED_SPORT';
+    
+    return NextResponse.json(
+      { error: error.message || 'Internal Server Error', code },
+      { status: 500 }
+    );
   }
 }
