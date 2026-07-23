@@ -61,26 +61,30 @@ export function ErrorView({
   const { Icon, title, body } = copy;
 
   return (
-    <div
-      className="flex flex-col items-center gap-5 rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center"
-      role="alert"
-    >
-      <div className="rounded-full bg-destructive/10 p-3">
-        <Icon className="h-7 w-7 text-destructive" aria-hidden />
+    <div className="bezel" role="alert">
+      <div className="bezel-core flex flex-col items-center gap-5 px-6 py-12 text-center">
+        <div className="relative grid place-items-center">
+          <span className="absolute h-16 w-16 rounded-full bg-destructive/20 blur-lg" />
+          <div className="relative rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5">
+            <Icon className="h-7 w-7 text-card_red" strokeWidth={1.5} aria-hidden />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="font-display text-xl font-semibold">{title}</h2>
+          <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+            {body}
+          </p>
+        </div>
+        {error.error && (
+          <p className="max-w-sm rounded-lg border border-white/10 bg-black/30 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+            <span className="text-card_red">{error.code}</span>: {error.error}
+          </p>
+        )}
+        <Button onClick={onRetry} variant="outline">
+          <RotateCcw className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+          Start over
+        </Button>
       </div>
-      <div className="space-y-1.5">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="mx-auto max-w-sm text-sm text-muted-foreground">{body}</p>
-      </div>
-      {error.error && (
-        <p className="max-w-sm rounded-md bg-muted px-3 py-2 font-mono text-[11px] text-muted-foreground">
-          {error.code}: {error.error}
-        </p>
-      )}
-      <Button onClick={onRetry} variant="outline">
-        <RotateCcw className="mr-2 h-4 w-4" aria-hidden />
-        Start over
-      </Button>
     </div>
   );
 }

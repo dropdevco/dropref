@@ -5,7 +5,7 @@
 > Read this top-to-bottom before touching anything. **Update it on every
 > meaningful change** — see [How to keep this current](#how-to-keep-this-current).
 
-**Last updated:** 2026-07-23 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified · **A11y:** ✅ swept + reviewed
+**Last updated:** 2026-07-23 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified (desktop + mobile) · **A11y:** ✅ swept + reviewed · **Design:** ✅ premium dark revamp
 
 ---
 
@@ -66,6 +66,15 @@ const MOCK_DELAY_MS = 12_000;                           // simulated latency for
 20MB cap (matches the server), 15s duration cap (UI-only, read from a detached
 `<video>` before upload), accepts mp4/mov/webm.
 
+**Design language** (dark-only, "VAR booth at a night match"): tokens live in
+`app/globals.css` (`:root`, no light theme). Fonts via `next/font` — Space
+Grotesk (`font-display`) + Plus Jakarta Sans (`font-sans`). Referee cards
+green/yellow/red are the semantic accent system (`--card-green/-yellow/-red`,
+Tailwind `card_green/card_yellow/card_red`). Reusable: `.bezel` + `.bezel-core`
+(double-bezel), `.eyebrow`, `.tabular`, `.text-glow-*`, and the whistle
+keyframes (`anim-bob/-blow/-ring/-sheen`). `ease-smooth` = the house easing.
+All motion is CSS + `tailwindcss-animate` (no Motion/GSAP — dep-free per constraint).
+
 **Component inventory** (all under `components/`):
 - `upload-zone.tsx` — drag-drop + file picker
 - `sport-selector.tsx` — radio grid, driven by `SPORTS`
@@ -73,7 +82,9 @@ const MOCK_DELAY_MS = 12_000;                           // simulated latency for
 - `analyzing-state.tsx` — staged copy on a `setInterval`, elapsed counter
 - `result-view.tsx` — verdict badge, confidence meter, saw/reasoning, rules accordion
 - `error-view.tsx` — distinct copy for all six `ErrorCode`s
-- `verdict-badge.tsx`, `confidence-meter.tsx` — result sub-parts
+- `verdict-badge.tsx` — the verdict as a tilted **referee card** (red/yellow/green)
+- `confidence-meter.tsx` — confidence as a **slider gauge** with a glowing knob
+- `whistle.tsx` — faux-3D metallic SVG whistle (idle bob / blowing + sound rings)
 - `sports.ts` — **the single `SPORTS` source of truth** (labels, emoji, samples)
 - `ui/` — shadcn primitives (button, accordion, card, badge)
 
@@ -162,3 +173,11 @@ in the same commit.** Specifically:
   sr-only `role="status"` verdict, `role="alert"` error, focus-visible on all
   custom controls, AA contrast fix on rejection text. Opus adversarial review
   PASS; build + typecheck green.
+- **2026-07-23** — Premium dark UI revamp (frontend-studio skill). Dark-only
+  "VAR booth" theme; Space Grotesk + Plus Jakarta Sans via next/font; referee
+  card (green/yellow/red) accent system. New: faux-3D SVG whistle centerpiece
+  (blows during analysis), sliding segmented sport control with custom sport
+  glyphs, verdict-as-referee-card, confidence slider-gauge, double-bezel cards,
+  desktop 2-column hero + form (collapses to 1 col on mobile). No new deps
+  (motion is CSS + tailwindcss-animate). Verified all 4 states on desktop AND
+  mobile in-browser (screenshots). Build + typecheck green, no warnings.
