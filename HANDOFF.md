@@ -5,7 +5,7 @@
 > Read this top-to-bottom before touching anything. **Update it on every
 > meaningful change** — see [How to keep this current](#how-to-keep-this-current).
 
-**Last updated:** 2026-07-23 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes
+**Last updated:** 2026-07-23 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified
 
 ---
 
@@ -98,8 +98,12 @@ Status legend: ☐ todo · ◐ in progress · ☑ done
 
 - ☑ Scaffold (Next 14 App Router + TS + Tailwind + shadcn)
 - ☑ Dev B stubs, wired route, mocks, full UI, clean build
-- ☐ **Visual QA** all four states on mobile viewport (real browser pass)
-- ☐ **Real sample clips** dropped into `/public/samples` (see that dir's README for exact filenames)
+- ☑ **Behavioral QA** — idle/analyzing/result/error + bad-format rejection all
+  verified in-browser (375×812). App logic sound. _Pixel/visual review still
+  pending: the browser pane wasn't compositing, so only DOM/behavior was checked._
+- ☐ **Real sample clips** dropped into `/public/samples` (see that dir's README
+  for exact filenames). `soccer-offside.mp4` is a **synthetic QA placeholder** —
+  replace before demo. The other 5 sample buttons show "not available yet".
 - ☐ **Polish**: transitions between states, focus management on state change, empty/disabled affordances
 - ☐ **Favicon + OG/social meta** for the share/demo
 - ☐ **Deploy** (Vercel) and fill the live link in `README.md`
@@ -134,3 +138,9 @@ in the same commit.** Specifically:
 - **2026-07-23** — Scaffolded project; Parts 1–4 complete (contract, Dev B
   stubs, wired route, full mock-driven UI). Build green. Created `dev-a` branch
   and this handoff doc.
+- **2026-07-23** — Behavioral QA pass in-browser: idle → analyzing → result
+  (bad) → reset, error state, and bad-format rejection all verified. Added a
+  synthetic placeholder `public/samples/soccer-offside.mp4` so the flow is
+  demoable. Known cosmetic gap: the 4th loading stage ("Comparing against
+  official rules…", 16s+) never shows under the 12s mock — real pipeline
+  latency will surface it.
