@@ -12,3 +12,7 @@ must match the `samples[].src` paths exactly:
 
 Until they exist, the sample buttons show an inline "not available yet" note —
 the rest of the UI works without them.
+
+> **Note:** `soccer-offside.mp4` currently holds a small **synthetic QA clip**
+> (color bars reading "QA CLIP") generated during testing so the flow is
+> demoable end-to-end. **Replace it with a real offside clip before the demo.**

@@ -2,50 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  RefCheck AI — "VAR booth at a night match".
+  Dark-only, committed single look. Referee cards (green/yellow/red) are the
+  entire semantic accent language. Tokens keep shadcn names so primitives work.
+*/
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-  }
+    --background: 210 33% 6%;
+    --foreground: 210 20% 96%;
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --card: 210 28% 9%;
+    --card-foreground: 210 20% 96%;
+    --popover: 210 30% 8%;
+    --popover-foreground: 210 20% 96%;
+
+    /* pitch green — the "go / fair" action color */
+    --primary: 152 62% 45%;
+    --primary-foreground: 155 60% 6%;
+
+    --secondary: 210 20% 15%;
+    --secondary-foreground: 210 20% 92%;
+    --muted: 210 20% 14%;
+    --muted-foreground: 214 14% 63%;
+    --accent: 210 22% 16%;
+    --accent-foreground: 210 20% 96%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 17%;
+    --input: 210 20% 15%;
+    --ring: 152 62% 45%;
+    --radius: 1rem;
+
+    /* referee card accents (used decoratively + semantically) */
+    --card-green: 152 62% 46%;
+    --card-yellow: 45 96% 55%;
+    --card-red: 0 78% 56%;
   }
 }
 
@@ -53,8 +47,157 @@
   * {
     @apply border-border;
   }
+  html {
+    color-scheme: dark;
+  }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'ss01', 'cv01';
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Fixed stadium-night backdrop: two coloured spots + faint pitch lines. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        60rem 40rem at 15% -10%,
+        hsl(152 62% 45% / 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        50rem 40rem at 100% 0%,
+        hsl(210 70% 40% / 0.1),
+        transparent 55%
+      ),
+      linear-gradient(180deg, hsl(210 33% 7%), hsl(210 35% 5%));
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.4;
+    background-image:
+      linear-gradient(hsl(210 20% 100% / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(210 20% 100% / 0.03) 1px, transparent 1px);
+    background-size: 3.25rem 3.25rem;
+    mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
+  }
+}
+
+@layer components {
+  /* Double-bezel: outer shell wraps an inner core with its own bg + inset. */
+  .bezel {
+    @apply rounded-[calc(var(--radius)+0.35rem)] bg-white/[0.03] p-1.5 ring-1 ring-white/[0.06];
+  }
+  .bezel-core {
+    @apply rounded-[var(--radius)] bg-card/80 ring-1 ring-inset ring-white/[0.05];
+    box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.05);
+  }
+
+  /* Eyebrow tag. */
+  .eyebrow {
+    @apply inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .text-glow-green {
+    text-shadow: 0 0 24px hsl(var(--card-green) / 0.45);
+  }
+  .text-glow-yellow {
+    text-shadow: 0 0 24px hsl(var(--card-yellow) / 0.45);
+  }
+  .text-glow-red {
+    text-shadow: 0 0 24px hsl(var(--card-red) / 0.45);
+  }
+}
+
+/* ---- Keyframes (CSS-only motion; tailwindcss-animate handles the rest) ---- */
+@keyframes whistle-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+@keyframes whistle-blow {
+  0%,
+  100% {
+    transform: translateX(0) rotate(-3deg);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(2px) rotate(-1deg);
+  }
+}
+@keyframes sound-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+@keyframes sheen {
+  0% {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  60%,
+  100% {
+    transform: translateX(320%) skewX(-12deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .anim-bob {
+    animation: whistle-bob 4s ease-in-out infinite;
+  }
+  .anim-blow {
+    animation: whistle-blow 0.5s ease-in-out infinite;
+  }
+  .anim-ring {
+    animation: sound-ring 1.8s ease-out infinite;
+  }
+  .anim-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(0 0% 100% / 0.12),
+      transparent
+    );
+    animation: sheen 3.5s ease-in-out infinite;
+  }
+}
+
+/* Belt-and-suspenders: kill all motion for reduced-motion users. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
