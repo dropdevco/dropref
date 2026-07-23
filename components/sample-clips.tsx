@@ -30,7 +30,8 @@ export function SampleClips({
                 type="button"
                 disabled={disabled}
                 onClick={() => onSelect(sport.id, sample)}
-                className="rounded-full border border-input bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-[color,background-color,transform] motion-safe:active:scale-[0.96] hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                aria-label={`${sport.label} sample: ${sample.label}`}
+                className="rounded-full border border-input bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-[color,background-color,transform] motion-safe:active:scale-[0.96] hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
               >
                 {sample.label}
               </button>

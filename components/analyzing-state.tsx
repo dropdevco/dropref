@@ -30,6 +30,11 @@ export function AnalyzingState({ previewUrl }: { previewUrl: string }) {
   return (
     <div className="space-y-5">
       <div className="overflow-hidden rounded-xl border bg-black">
+        {/* Decorative replay of the user's own clip — muted, looping, no
+            captioned audio track to convey, and the same content is already
+            shown (with controls) in the idle/result views. Hidden from
+            assistive tech; the live-region status text below carries the
+            actual progress information. */}
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <video
           src={previewUrl}
@@ -38,6 +43,8 @@ export function AnalyzingState({ previewUrl }: { previewUrl: string }) {
           muted
           loop
           playsInline
+          aria-hidden="true"
+          tabIndex={-1}
         />
       </div>
 

@@ -1,13 +1,19 @@
 import type { Confidence } from '@/types/contract';
 import { cn } from '@/lib/utils';
 
+export const CONFIDENCE_LABEL: Record<Confidence, string> = {
+  HIGH: 'High confidence',
+  MEDIUM: 'Medium confidence',
+  LOW: 'Low confidence',
+};
+
 const CONFIDENCE_META: Record<
   Confidence,
   { label: string; segments: number; bar: string }
 > = {
-  HIGH: { label: 'High confidence', segments: 3, bar: 'bg-emerald-500' },
-  MEDIUM: { label: 'Medium confidence', segments: 2, bar: 'bg-amber-500' },
-  LOW: { label: 'Low confidence', segments: 1, bar: 'bg-red-500' },
+  HIGH: { label: CONFIDENCE_LABEL.HIGH, segments: 3, bar: 'bg-emerald-500' },
+  MEDIUM: { label: CONFIDENCE_LABEL.MEDIUM, segments: 2, bar: 'bg-amber-500' },
+  LOW: { label: CONFIDENCE_LABEL.LOW, segments: 1, bar: 'bg-red-500' },
 };
 
 export function ConfidenceMeter({ confidence }: { confidence: Confidence }) {

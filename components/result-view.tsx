@@ -10,8 +10,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { VerdictBadge } from '@/components/verdict-badge';
-import { ConfidenceMeter } from '@/components/confidence-meter';
+import { VerdictBadge, VERDICT_LABEL } from '@/components/verdict-badge';
+import { ConfidenceMeter, CONFIDENCE_LABEL } from '@/components/confidence-meter';
 
 function Section({
   icon: Icon,
@@ -44,14 +44,23 @@ export function ResultView({
 }) {
   return (
     <div className="space-y-6">
+      <p className="sr-only" role="status">
+        Verdict: {VERDICT_LABEL[result.verdict]}. Confidence:{' '}
+        {CONFIDENCE_LABEL[result.confidence]}.
+      </p>
+
       {previewUrl && (
         <div className="overflow-hidden rounded-xl border bg-black">
+          {/* User-supplied clip with native controls — no caption track is
+              available for arbitrary uploads, so we exempt this from
+              jsx-a11y/media-has-caption rather than fake one. */}
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
             src={previewUrl}
             className="mx-auto max-h-64 w-full object-contain"
             controls
             playsInline
+            aria-label="Uploaded clip playback"
           />
         </div>
       )}

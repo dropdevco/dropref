@@ -5,7 +5,7 @@
 > Read this top-to-bottom before touching anything. **Update it on every
 > meaningful change** — see [How to keep this current](#how-to-keep-this-current).
 
-**Last updated:** 2026-07-23 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified
+**Last updated:** 2026-07-23 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified · **A11y:** ✅ swept + reviewed
 
 ---
 
@@ -107,10 +107,16 @@ Status legend: ☐ todo · ◐ in progress · ☑ done
 - ☑ **Polish & motion**: keyed entrance animations per phase, focus moves to the
   active view on transition, analyzing stage-label crossfade, verdict zoom-in,
   button/chip active-press. All `motion-safe:` + a global reduced-motion guard.
-- ☐ **Favicon + OG/social meta** for the share/demo
+- ☑ **Favicon + OG/social meta** — `app/icon.svg` (whistle-ring + green check),
+  `app/opengraph-image.png` (1200×630, rasterized locally, CSP-safe), and full
+  OG + Twitter tags in `app/layout.tsx`. Verified emitted in the rendered `<head>`.
+- ☑ **Accessibility sweep** — accessible names on dropzone/file-input/sample
+  buttons, `aria-labelledby` on the sport radiogroup, `role="status"` sr-only
+  verdict summary, `role="alert"` error, focus-visible on all custom controls,
+  contrast fixed (rejection text now `red-600`/`red-400`, AA in both themes).
+  Adversarially reviewed (Opus) — PASS.
 - ☐ **Deploy** (Vercel) and fill the live link in `README.md`
 - ☐ **Flip to real API** once Dev B lands `analyze()` — set `USE_MOCK = false`, smoke-test the multipart round-trip + each error code
-- ☐ **Accessibility sweep**: keyboard-only run through, `aria-live` on stage/verdict, contrast in light + dark
 
 _Adjust as we go — this list is the working plan, not a contract._
 
@@ -150,3 +156,9 @@ in the same commit.** Specifically:
   no new deps): per-phase entrance animation, focus management on view swap,
   stage-label crossfade, verdict zoom-in, active-press on buttons/chips, and a
   `prefers-reduced-motion` kill-switch in globals.css. Build green.
+- **2026-07-23** — Orchestrated (Sonnet workers, Opus reviewer): (1) favicon +
+  OG/Twitter metadata with a locally-rasterized 1200×630 PNG card; (2)
+  accessibility sweep — accessible names, `aria-labelledby` sport group,
+  sr-only `role="status"` verdict, `role="alert"` error, focus-visible on all
+  custom controls, AA contrast fix on rejection text. Opus adversarial review
+  PASS; build + typecheck green.

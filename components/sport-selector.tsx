@@ -13,8 +13,14 @@ export function SportSelector({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium">Sport</label>
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Sport">
+      <span id="sport-selector-label" className="mb-2 block text-sm font-medium">
+        Sport
+      </span>
+      <div
+        className="grid grid-cols-3 gap-2"
+        role="radiogroup"
+        aria-labelledby="sport-selector-label"
+      >
         {SPORTS.map((sport) => {
           const selected = value === sport.id;
           return (

@@ -61,7 +61,10 @@ export function ErrorView({
   const { Icon, title, body } = copy;
 
   return (
-    <div className="flex flex-col items-center gap-5 rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center">
+    <div
+      className="flex flex-col items-center gap-5 rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center"
+      role="alert"
+    >
       <div className="rounded-full bg-destructive/10 p-3">
         <Icon className="h-7 w-7 text-destructive" aria-hidden />
       </div>
