@@ -9,9 +9,11 @@ import { ACCEPT_ATTR } from '@/components/clip';
 export function UploadZone({
   onPick,
   busy,
+  className,
 }: {
   onPick: (file: File) => void;
   busy?: boolean;
+  className?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -54,6 +56,7 @@ export function UploadZone({
           ? 'scale-[1.01] border-primary bg-primary/[0.07] shadow-[0_0_40px_hsl(var(--primary)/0.18)]'
           : 'border-white/15 bg-white/[0.02] hover:border-primary/50 hover:bg-white/[0.035]',
         busy && 'pointer-events-none opacity-60',
+        className,
       )}
     >
       {/* corner pitch-marks */}

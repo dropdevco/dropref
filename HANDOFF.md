@@ -61,6 +61,9 @@ const MOCK_DELAY_MS = 12_000;                           // simulated latency for
 - `isAnalyzeError(result)` narrows the union for the page.
 - **To exercise each UI state:** change `MOCK_SCENARIO` and reload. `'error'`
   drives the ERROR state; the other three drive RESULT.
+- **Frontend-only verdict animation test:** the idle form has three "Animation
+  test" buttons (Fair, Bad, Inconclusive) that run `analyzing -> result` against
+  the existing mock fixtures without changing `MOCK_SCENARIO` or uploading a clip.
 
 **Client-side validation** — [`components/clip.ts`](components/clip.ts):
 20MB cap (matches the server), 15s duration cap (UI-only, read from a detached
@@ -181,3 +184,9 @@ in the same commit.** Specifically:
   desktop 2-column hero + form (collapses to 1 col on mobile). No new deps
   (motion is CSS + tailwindcss-animate). Verified all 4 states on desktop AND
   mobile in-browser (screenshots). Build + typecheck green, no warnings.
+- **2026-07-23** — Added frontend-only verdict animation test controls: Fair,
+  Bad, and Inconclusive buttons in the idle form now drive the normal analyzing
+  transition and render the corresponding mock result fixture without a reload.
+- **2026-07-23** — Desktop frontend layout pass: added a desktop-only replay
+  desk plus sticky controls rail, kept the mobile stacked flow intact, widened
+  analyzing/result containers, and split the result view into a desktop grid.
