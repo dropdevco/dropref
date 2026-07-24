@@ -3,3 +3,6 @@ uvicorn
 ultralytics
 python-multipart
 opencv-python-headless
+paddlepaddle
+paddleocr
+deep-sort-realtime
