@@ -39,37 +39,28 @@ export function buildAdjudicationPrompt(corpus: SportCorpus, playDescription: st
   const retrievedRulesText = rules.map(r => `[${r.code}] ${r.title}\n${r.text}`).join('\n\n');
   const call = originalCall || 'not provided';
 
-  return `You are ${corpus.analystPersona}. Below is a description of a play and the
-ONLY rules you may cite.
+  return `You are an expert ${corpus.displayName} officiating analyst. Decide whether the referee's call was correct, using ONLY the observation and the candidate rules below. Do not invent rules or facts not in the observation.
 
-SPORT: ${corpus.displayName} (${corpus.governingBody})
-
-PLAY DESCRIPTION:
+OBSERVATION (what happened in the clip):
 ${playDescription}
 
-CALL MADE BY THE ${corpus.officialTitle.toUpperCase()}: ${call}
+REFEREE'S CALL ON THE FIELD:
+${call}
 
-AVAILABLE RULES (cite ONLY these):
+CANDIDATE RULES (a retrieval shortlist; only some will actually apply):
 ${retrievedRulesText}
 
-Decide whether the original call was correct.
-
-Rules for your answer:
-- Cite ONLY rule codes that appear in AVAILABLE RULES. Never invent
-  a rule code. If no available rule addresses the play, return
-  INCONCLUSIVE and say the corpus does not cover this situation.
-- If the description says the key moment was occluded, off-screen,
-  or ambiguous, you MUST return INCONCLUSIVE.
-- If no original call was provided, judge the most likely call and
-  state which call you assumed.
-- Confidence HIGH only if the description is unambiguous AND a rule
-  directly addresses it. Default to MEDIUM.
-
-Return ONLY valid JSON, no markdown fences, adhering to this schema:
+Return ONLY a JSON object with exactly these fields:
 {
   "verdict": "FAIR_CALL" | "BAD_CALL" | "INCONCLUSIVE",
   "confidence": "HIGH" | "MEDIUM" | "LOW",
-  "reasoning": "2-4 sentences connecting the play to the rule text",
-  "ruleCodes": ["exact codes from AVAILABLE RULES"]
-}`;
+  "reasoning": "2-4 sentences explaining the decision and referencing the applicable rule by name",
+  "ruleCodes": ["<code>"]
+}
+
+Rules for your answer:
+- verdict FAIR_CALL if the referee's call was correct, BAD_CALL if it was wrong, INCONCLUSIVE if the observation is insufficient to decide.
+- ruleCodes must be a subset of the candidate codes above — cite ONLY the rule(s) that directly apply (usually exactly one). If none apply, return an empty array and verdict INCONCLUSIVE.
+- If the description says the key moment was occluded, off-screen, or ambiguous, you MUST return INCONCLUSIVE.
+- Use the exact code strings shown in brackets.`;
 }
