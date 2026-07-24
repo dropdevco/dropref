@@ -6,7 +6,7 @@ export function buildObservationPrompt(corpus: SportCorpus, originalCall: string
     : `For this sport specifically, pay attention to: ${corpus.observationHints}`;
 
   const cvContext = cvMetadata
-    ? `\n[COMPUTER VISION SYSTEM DATA]\nThe provided video has been pre-processed. Bounding boxes and skeletal tracking lines have been drawn onto the players. Metadata found: ${JSON.stringify(cvMetadata)}\nPlease cross-reference this hard tracking and pose data with your visual analysis.\n`
+    ? `\n[COMPUTER VISION SYSTEM DATA]\nThe provided video has been pre-processed. Bounding boxes and skeletal tracking lines have been drawn onto the players. Metadata found: ${JSON.stringify(cvMetadata)}\n\nCRITICAL INSTRUCTION: The 'telemetry' array contains mathematically calculated physics events (e.g. BALL_KICKED, PLAYER_COLLISION). You MUST treat these telemetry events as absolute mathematical facts. Use the exact frame numbers provided in the telemetry to pinpoint when the decisive action occurred in the video.\nPlease cross-reference this hard tracking data with your visual analysis.\n`
     : '';
 
   return `You are a neutral sports video analyst. Watch this ${corpus.displayName} clip.

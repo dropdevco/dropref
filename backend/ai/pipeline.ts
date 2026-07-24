@@ -7,6 +7,34 @@ import { AnalyzeResponse, SportId, CitedRule } from '../../types/contract';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function generateContentWithRetry(model: any, promptData: any, maxRetries = 3) {
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+    try {
+      return await model.generateContent(promptData);
+    } catch (e: any) {
+      if (e.message?.includes('429') && attempt < maxRetries) {
+        attempt++;
+        
+        // Gemini often tells us exactly how long to wait (e.g. "Please retry in 25.123s")
+        const match = e.message.match(/retry in ([\d\.]+)s/i);
+        let waitTime = 10000; // default 10 seconds if parsing fails
+        if (match && match[1]) {
+           // Add a 1 second buffer to their requested wait time
+           waitTime = (parseFloat(match[1]) + 1) * 1000;
+        }
+        
+        console.warn(`[Gemini API] 429 Rate Limit hit. Retrying attempt ${attempt}/${maxRetries} in ${Math.round(waitTime/1000)} seconds...`);
+        await sleep(waitTime);
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+
 // Zod schema for model output validation
 const AdjudicationSchema = z.object({
   verdict: z.enum(['FAIR_CALL', 'BAD_CALL', 'INCONCLUSIVE']),
@@ -19,6 +47,7 @@ export async function runAnalysisPipeline(
   sportId: SportId,
   videoBase64: string,
   videoMimeType: string,
+  skeletonBase64: string | null = null,
   originalCall: string | null = null,
   cvMetadata: any = null
 ): Promise<AnalyzeResponse> {
@@ -27,8 +56,8 @@ export async function runAnalysisPipeline(
   // 1. Load corpus
   const corpus = getSportCorpus(sportId);
 
-  // Use gemini-flash-latest as it supports video inputs and fast response
-  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+  // Use gemini-3.5-flash as it supports video inputs and fast response with higher free tier limits
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
 
   // Convert base64 back to generative part
   const videoPart = {
@@ -40,7 +69,18 @@ export async function runAnalysisPipeline(
 
   // --- STAGE 1: Observation ---
   const obsPrompt = buildObservationPrompt(corpus, originalCall, cvMetadata);
-  const obsResult = await model.generateContent([obsPrompt, videoPart]);
+  const promptParts: any[] = [obsPrompt, videoPart];
+  
+  if (skeletonBase64) {
+    promptParts.push({
+      inlineData: {
+        data: skeletonBase64,
+        mimeType: videoMimeType
+      }
+    });
+  }
+
+  const obsResult = await generateContentWithRetry(model, promptParts);
   const playDescription = obsResult.response.text();
 
   // --- STAGE 2: Adjudication ---
@@ -49,7 +89,7 @@ export async function runAnalysisPipeline(
   const adjPrompt = buildAdjudicationPrompt(corpus, playDescription, originalCall, retrievedRules);
 
   const adjModel = genAI.getGenerativeModel({
-    model: 'gemini-flash-latest',
+    model: 'gemini-3.5-flash',
     generationConfig: {
       temperature: 0.2,
       responseMimeType: 'application/json',
@@ -62,7 +102,7 @@ export async function runAnalysisPipeline(
   while (attempts < 2) {
     attempts++;
     try {
-      const adjResult = await adjModel.generateContent([adjPrompt]);
+      const adjResult = await generateContentWithRetry(adjModel, [adjPrompt]);
       const jsonText = adjResult.response.text();
       adjudicationData = AdjudicationSchema.parse(JSON.parse(jsonText));
       break;

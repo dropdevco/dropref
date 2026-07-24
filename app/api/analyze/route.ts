@@ -26,7 +26,10 @@ export async function POST(req: Request) {
 
     let cvMetadata = null;
     let finalVideoBase64 = videoBase64;
+    let skeletonBase64 = null;
 
+    // Temporarily disabled YOLO CV service as requested
+    /*
     try {
       const cvFormData = new FormData();
       cvFormData.append('video', videoFile);
@@ -42,17 +45,22 @@ export async function POST(req: Request) {
         if (cvData.videoBase64) {
           finalVideoBase64 = cvData.videoBase64;
         }
+        if (cvData.skeletonBase64) {
+          skeletonBase64 = cvData.skeletonBase64;
+        }
       } else {
         console.warn('CV service returned error:', cvRes.status);
       }
     } catch (e) {
       console.warn('CV service unreachable. Proceeding with raw video.', e);
     }
+    */
 
     const response = await runAnalysisPipeline(
       sport as SportId,
       finalVideoBase64,
       videoMimeType,
+      skeletonBase64,
       originalCall || null,
       cvMetadata
     );
