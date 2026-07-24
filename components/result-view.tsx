@@ -73,18 +73,18 @@ export function ResultView({
       </div>
 
       {videoSrc && (
-        <div className="bezel lg:col-start-2 overflow-hidden">
-          <div className="bg-white/5 border-b border-white/10 px-3 py-1.5 text-xs font-medium text-muted-foreground flex items-center justify-center gap-1.5">
-            <Eye className="h-3.5 w-3.5" />
+        <div className="bezel overflow-hidden lg:col-start-2">
+          <div className="flex items-center justify-center gap-1.5 border-b border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+            <Eye className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
             {result.annotatedVideoBase64 ? 'Computer Vision Processed' : 'Original Video'}
           </div>
-          <div className="bezel-core bg-black/50 p-1.5 rounded-t-none">
+          <div className="bezel-core flex h-[min(62vh,34rem)] items-center overflow-hidden rounded-t-none bg-black/50 p-1.5">
             {/* User-supplied clip with native controls — no caption track is
                 available for arbitrary uploads. */}
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video
               src={videoSrc}
-              className="mx-auto max-h-56 w-full rounded-xl object-contain lg:max-h-[52vh] rounded-t-none"
+              className="h-full w-full rounded-xl object-contain"
               controls
               playsInline
               aria-label="Uploaded clip playback"

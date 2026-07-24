@@ -72,7 +72,17 @@
         "careless",
         "trip",
         "late tackle",
-        "missed the ball"
+        "missed the ball",
+        "slide",
+        "slide tackle",
+        "slid in",
+        "from behind",
+        "ankle",
+        "shin",
+        "caught",
+        "before the ball",
+        "challenge",
+        "brought down"
       ],
       "callTypes": [
         "foul",
@@ -89,7 +99,12 @@
         "yellow card",
         "studs",
         "dangerous",
-        "sliding tackle"
+        "sliding tackle",
+        "lunge",
+        "studs up",
+        "clattered",
+        "from behind",
+        "late challenge"
       ],
       "callTypes": [
         "foul",

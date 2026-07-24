@@ -79,13 +79,13 @@ export function AnalyzingState({ previewUrl }: { previewUrl: string | null }) {
         </div>
 
         {previewUrl && (
-          <div className="border-t border-white/5 bg-black/40 p-1.5">
+          <div className="flex h-[min(42vh,24rem)] items-center border-t border-white/5 bg-black/40 p-1.5">
             {/* Decorative muted loop of the user's own clip; progress is conveyed
                 by the live-region text above, so this is hidden from AT. */}
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video
               src={previewUrl}
-              className="mx-auto max-h-56 w-full rounded-xl object-contain"
+              className="h-full w-full rounded-xl object-contain"
               autoPlay
               muted
               loop

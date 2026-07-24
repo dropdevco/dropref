@@ -300,13 +300,13 @@ export default function Home() {
                       <div className="flex flex-1 flex-col p-5">
                         {previewUrl ? (
                           <div className="flex h-full flex-col gap-3">
-                            <div className="flex min-h-[420px] flex-1 items-center overflow-hidden rounded-xl border border-white/10 bg-black/55 p-1.5">
+                            <div className="flex h-[min(64vh,540px)] min-h-[420px] flex-1 items-center overflow-hidden rounded-xl border border-white/10 bg-black/55 p-1.5">
                               {/* User-supplied clip with native controls — no
                                   caption track for arbitrary uploads. */}
                               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                               <video
                                 src={previewUrl}
-                                className="mx-auto max-h-[64vh] w-full rounded-lg object-contain"
+                                className="h-full w-full rounded-lg object-contain"
                                 controls
                                 playsInline
                                 aria-label="Selected clip playback"
@@ -442,13 +442,13 @@ export default function Home() {
                   <div className="bezel-core space-y-5 p-5">
                     {previewUrl ? (
                       <div className="space-y-2">
-                        <div className="overflow-hidden rounded-xl border border-white/10 bg-black/50 p-1.5">
+                        <div className="flex h-[min(62vh,32rem)] items-center overflow-hidden rounded-xl border border-white/10 bg-black/50 p-1.5">
                           {/* User-supplied clip with native controls — no
                               caption track for arbitrary uploads. */}
                           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                           <video
                             src={previewUrl}
-                            className="mx-auto max-h-56 w-full rounded-lg object-contain"
+                            className="h-full w-full rounded-lg object-contain"
                             controls
                             playsInline
                             aria-label="Selected clip playback"
