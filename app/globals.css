@@ -9,6 +9,12 @@
 */
 @layer base {
   :root {
+    --font-sans:
+      'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display:
+      'Space Grotesk', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont,
+      sans-serif;
+
     --background: 210 33% 6%;
     --foreground: 210 20% 96%;
 

@@ -1,11 +1,12 @@
 /**
  * OWNER: Dev A (frontend).
  * Client-side clip validation — kept in lockstep with the server route
- * (20MB cap) plus a UI-only 15-second duration cap.
+ * (20MB cap) plus a UI-only 18-second duration cap.
  */
 
 export const MAX_BYTES = 20 * 1024 * 1024; // 20MB — matches the API route
-export const MAX_DURATION_S = 15; // UI-only guard
+export const MAX_DURATION_S = 18; // UI-only guard
+export const DURATION_METADATA_TOLERANCE_S = 0.25;
 
 /** Accepted container/MIME types: mp4, mov, webm. */
 export const ACCEPTED_MIME = ['video/mp4', 'video/quicktime', 'video/webm'];

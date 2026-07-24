@@ -41,7 +41,7 @@ export function UploadZone({
       onClick={() => inputRef.current?.click()}
       role="button"
       tabIndex={0}
-      aria-label="Upload a clip. Drop a video file here or activate to browse. MP4, MOV or WebM, up to 20MB, 15 seconds or shorter."
+      aria-label="Upload a clip. Drop a video file here or activate to browse. MP4, MOV or WebM, up to 20MB, 18 seconds or shorter."
       aria-disabled={busy || undefined}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -89,7 +89,7 @@ export function UploadZone({
         </p>
         <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clapperboard className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
-          MP4, MOV or WebM · ≤20MB · ≤15s
+          MP4, MOV or WebM · ≤20MB · ≤18s
         </p>
       </div>
       <input
