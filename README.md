@@ -10,7 +10,7 @@ AI-powered instant replay: upload a short clip, pick the sport, and get a verdic
 
 ```bash
 npm install
-cp .env.example .env      # then fill in GEMINI_API_KEY
+cp .env.example .env      # then fill in OPENROUTER_API_KEY
 npm run dev               # http://localhost:3000
 ```
 

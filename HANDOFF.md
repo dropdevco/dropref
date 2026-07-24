@@ -294,3 +294,9 @@ in the same commit.** Specifically:
   Lab-only (the frozen `AnalyzeResponse` can't express a self-ruling) — the route
   now returns `result: LabResult` (discriminated by `mode`). Verified live:
   ruling "studs-up lunge" → "Send off — serious foul play" (dismissal, red card).
+- **2026-07-23** - Main `/api/analyze` now also prefers **OpenRouter** when
+  `OPENROUTER_API_KEY` is set. Uploaded clips are sent as base64 data URLs with
+  OpenRouter's `video_url` content type, so `OPENROUTER_VIDEO_MODEL` must point
+  to a video-capable model. Default is `google/gemini-2.5-flash`; Gemini SDK is
+  only the fallback when `OPENROUTER_API_KEY` is absent. `.env.example` was
+  updated to make OpenRouter the primary setup path.

@@ -3,9 +3,10 @@ import { z } from 'zod';
 import { getSportCorpus } from '../sports';
 import { retrieveRules, filterValidRuleCodes } from '../rules/retrieve';
 import { buildObservationPrompt, buildAdjudicationPrompt } from './prompts';
-import { AnalyzeResponse, SportId, CitedRule } from '../../types/contract';
+import { AnalyzeResponse, SportId } from '../../types/contract';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const OPENROUTER_DEFAULT_VIDEO_MODEL = 'google/gemini-2.5-flash';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -43,6 +44,178 @@ const AdjudicationSchema = z.object({
   ruleCodes: z.array(z.string()),
 });
 
+function getOpenRouterModel(): string {
+  return (
+    process.env.OPENROUTER_VIDEO_MODEL ||
+    process.env.OPENROUTER_MODEL ||
+    OPENROUTER_DEFAULT_VIDEO_MODEL
+  );
+}
+
+function extractJson(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end > start) return text.slice(start, end + 1);
+
+  return text;
+}
+
+async function openRouterChat({
+  prompt,
+  videoBase64,
+  videoMimeType,
+  skeletonBase64,
+  json = false,
+}: {
+  prompt: string;
+  videoBase64?: string | null;
+  videoMimeType?: string;
+  skeletonBase64?: string | null;
+  json?: boolean;
+}): Promise<string> {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) {
+    throw new Error('OPENROUTER_API_KEY is not set.');
+  }
+
+  const content: any[] = [{ type: 'text', text: prompt }];
+  if (videoBase64) {
+    const mimeType = videoMimeType || 'video/mp4';
+    content.push({
+      type: 'video_url',
+      videoUrl: {
+        url: `data:${mimeType};base64,${videoBase64}`,
+      },
+    });
+  }
+  if (skeletonBase64) {
+    const mimeType = videoMimeType || 'video/mp4';
+    content.push(
+      {
+        type: 'text',
+        text: 'This second video is the optional computer-vision annotated version of the same play.',
+      },
+      {
+        type: 'video_url',
+        videoUrl: {
+          url: `data:${mimeType};base64,${skeletonBase64}`,
+        },
+      },
+    );
+  }
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': process.env.OPENROUTER_SITE_URL || 'http://localhost:3000',
+      'X-Title': 'RefCheck AI',
+    },
+    body: JSON.stringify({
+      model: getOpenRouterModel(),
+      temperature: json ? 0.2 : 0.3,
+      ...(json ? { response_format: { type: 'json_object' } } : {}),
+      messages: [
+        {
+          role: 'user',
+          content,
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`OpenRouter ${res.status}: ${body.slice(0, 500)}`);
+  }
+
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+    error?: { message?: string };
+  };
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) {
+    throw new Error(
+      `OpenRouter returned no content${data.error?.message ? ': ' + data.error.message : ''}`,
+    );
+  }
+
+  return text;
+}
+
+async function observePlay({
+  prompt,
+  videoBase64,
+  videoMimeType,
+  skeletonBase64,
+}: {
+  prompt: string;
+  videoBase64: string;
+  videoMimeType: string;
+  skeletonBase64: string | null;
+}): Promise<string> {
+  if (process.env.OPENROUTER_API_KEY) {
+    return openRouterChat({
+      prompt,
+      videoBase64,
+      videoMimeType,
+      skeletonBase64,
+    });
+  }
+
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('No AI key set. Add OPENROUTER_API_KEY or GEMINI_API_KEY.');
+  }
+
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+  const promptParts: any[] = [
+    prompt,
+    {
+      inlineData: {
+        data: videoBase64,
+        mimeType: videoMimeType,
+      },
+    },
+  ];
+
+  if (skeletonBase64) {
+    promptParts.push({
+      inlineData: {
+        data: skeletonBase64,
+        mimeType: videoMimeType,
+      },
+    });
+  }
+
+  const obsResult = await generateContentWithRetry(model, promptParts);
+  return obsResult.response.text();
+}
+
+async function adjudicatePlay(prompt: string): Promise<z.infer<typeof AdjudicationSchema>> {
+  if (process.env.OPENROUTER_API_KEY) {
+    const text = await openRouterChat({ prompt, json: true });
+    return AdjudicationSchema.parse(JSON.parse(extractJson(text)));
+  }
+
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('No AI key set. Add OPENROUTER_API_KEY or GEMINI_API_KEY.');
+  }
+
+  const adjModel = genAI.getGenerativeModel({
+    model: 'gemini-3.5-flash',
+    generationConfig: {
+      temperature: 0.2,
+      responseMimeType: 'application/json',
+    },
+  });
+  const adjResult = await generateContentWithRetry(adjModel, [prompt]);
+  return AdjudicationSchema.parse(JSON.parse(extractJson(adjResult.response.text())));
+}
+
 export async function runAnalysisPipeline(
   sportId: SportId,
   videoBase64: string,
@@ -56,45 +229,19 @@ export async function runAnalysisPipeline(
   // 1. Load corpus
   const corpus = getSportCorpus(sportId);
 
-  // Use gemini-3.5-flash as it supports video inputs and fast response with higher free tier limits
-  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
-
-  // Convert base64 back to generative part
-  const videoPart = {
-    inlineData: {
-      data: videoBase64,
-      mimeType: videoMimeType
-    }
-  };
-
   // --- STAGE 1: Observation ---
   const obsPrompt = buildObservationPrompt(corpus, originalCall, cvMetadata);
-  const promptParts: any[] = [obsPrompt, videoPart];
-  
-  if (skeletonBase64) {
-    promptParts.push({
-      inlineData: {
-        data: skeletonBase64,
-        mimeType: videoMimeType
-      }
-    });
-  }
-
-  const obsResult = await generateContentWithRetry(model, promptParts);
-  const playDescription = obsResult.response.text();
+  const playDescription = await observePlay({
+    prompt: obsPrompt,
+    videoBase64,
+    videoMimeType,
+    skeletonBase64,
+  });
 
   // --- STAGE 2: Adjudication ---
   const searchQuery = originalCall ? `${originalCall} ${playDescription}` : playDescription;
   const retrievedRules = retrieveRules(corpus, searchQuery, 5);
   const adjPrompt = buildAdjudicationPrompt(corpus, playDescription, originalCall, retrievedRules);
-
-  const adjModel = genAI.getGenerativeModel({
-    model: 'gemini-3.5-flash',
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: 'application/json',
-    }
-  });
 
   // Try parsing the result, with 1 retry on failure
   let adjudicationData;
@@ -102,9 +249,7 @@ export async function runAnalysisPipeline(
   while (attempts < 2) {
     attempts++;
     try {
-      const adjResult = await generateContentWithRetry(adjModel, [adjPrompt]);
-      const jsonText = adjResult.response.text();
-      adjudicationData = AdjudicationSchema.parse(JSON.parse(jsonText));
+      adjudicationData = await adjudicatePlay(adjPrompt);
       break;
     } catch (e) {
       if (attempts === 2) {
