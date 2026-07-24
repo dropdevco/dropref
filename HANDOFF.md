@@ -69,6 +69,26 @@ const MOCK_DELAY_MS = 12_000;                           // simulated latency for
 20MB cap (matches the server), 15s duration cap (UI-only, read from a detached
 `<video>` before upload), accepts mp4/mov/webm.
 
+**Rulebook Lab (dev tool)** — [`/lab`](app/lab/page.tsx) + API
+[`/api/rules-lab`](app/api/rules-lab/route.ts) + adjudicator
+[`lib/lab/adjudicate.ts`](lib/lab/adjudicate.ts). Runs the decision pipeline on
+a supplied description (skips the video step): **retrieve → adjudicate →
+verdict**.
+- RETRIEVE: `retrieveRules(getSport(sport), query, k)` → candidate shortlist
+  (recall). Shown collapsed as "candidates considered", with matched keywords
+  highlighted and long rule text truncated (`show full`).
+- ADJUDICATE: Gemini (`@google/generative-ai`) picks the rule(s) that actually
+  apply and returns an `AnalyzeResponse` (verdict + confidence + reasoning +
+  cited rules) — same shape the app produces. **Requires `GEMINI_API_KEY`** in
+  `.env.local`; without it the lab shows candidates only and says the verdict
+  step is off. Optional `GEMINI_MODEL` env overrides the model (default
+  `gemini-1.5-flash`).
+This all lives under Dev-A paths (`app/lab`, `app/api/rules-lab`, `lib/lab`) and
+**only imports** Dev B's `getSport`/`retrieveRules` — never edits `lib/ai/**`,
+`lib/rules/**`, `lib/sports.ts`, or `data/**`. The lab's adjudicator is separate
+from (and can later defer to) Dev B's real `lib/ai/pipeline.ts`. Curl-able:
+`POST /api/rules-lab {sport, query, originalCall?, k?}`.
+
 **Design language** (dark-only, "VAR booth at a night match"): tokens live in
 `app/globals.css` (`:root`, no light theme). Fonts via `next/font` — Space
 Grotesk (`font-display`) + Plus Jakarta Sans (`font-sans`). Referee cards
@@ -190,3 +210,64 @@ in the same commit.** Specifically:
 - **2026-07-23** — Desktop frontend layout pass: added a desktop-only replay
   desk plus sticky controls rail, kept the mobile stacked flow intact, widened
   analyzing/result containers, and split the result view into a desktop grid.
+- **2026-07-23** — Fixed portrait/vertical clip rendering by giving preview,
+  analyzing, and result playback responsive video frames and fitting media with
+  `object-contain` inside the frame instead of sizing from width and clipping.
+- **2026-07-23** — Implemented the `getSport` loader in `lib/sports.ts` and structured/populated rules corpora for Soccer, Football, and Lacrosse under `data/sports/` based on the approved AI-friendly schema. Verified files and build.
+- **2026-07-23** — Implemented `retrieveRules` in `lib/rules/retrieve.ts` using Fuse.js with custom weights. Updated `data/sports/soccer.json` to include the exact detailed text and criteria for Law 11 (Offside Position, Offence, No Offence, Offences and Sanctions) as requested. Verification script and build passed.
+- **2026-07-23** — Updated `data/sports/soccer.json` Law 12 rules (Direct Free Kick Fouls, Handling the Ball, and Indirect Free Kick) with the exact detailed rules, criteria, and exceptions provided. Build and verification checks passed.
+
+
+
+- **2026-07-23** — Added the **Rulebook Lab** dev tool (`/lab` + `/api/rules-lab`)
+  to test the `description → rulebook` retrieval step in isolation, without a
+  clip or GEMINI key. Imports Dev B's `getSport`/`retrieveRules` only — no edits
+  to `lib/**` or `data/**`. Verified live across all three sports; build + typecheck green.
+- **2026-07-23** — Rulebook Lab upgraded to a full decision pipeline
+  (retrieve → adjudicate → verdict). Added `lib/lab/adjudicate.ts` (Gemini,
+  gated on `GEMINI_API_KEY`) so the lab returns an `AnalyzeResponse` verdict that
+  cites only the applicable rule(s); retrieval candidates are collapsed as
+  "considered" and long rule text truncates with `show full`. Still Dev-A-only
+  files; no edits to `lib/ai/**` or `data/**`. Build + typecheck green;
+  no-key path verified live (verdict path needs a key).
+- **2026-07-23** — Lab adjudicator model resiliency: don't hardcode/trust
+  ListModels. Try `gemini-flash-latest` → `gemini-2.0-flash` → `gemini-2.0-flash-001`,
+  falling through on BOTH 404 (retired model) AND 429 (a pinned version can be
+  quota-capped at 0 while the `-latest` alias has quota). Caches the first
+  working model; `GEMINI_MODEL` still overrides; quota/auth errors get a concise
+  UI message. Verified live: offside example → BAD_CALL citing only Law 11.2.
+- **2026-07-23** — Retrieval quality fix (⚠️ Dev A edited **Dev B files** at the
+  owner's explicit request — flagging for Dev B awareness / merge):
+  - `lib/rules/retrieve.ts` — tokenised retrieval. Long natural-language
+    descriptions scored poorly as one Fuse pattern against short keywords, so
+    the applicable rule (e.g. `Law 12.1.F`) dropped below threshold. Now searches
+    the whole query **plus each significant term**, summing per-rule relevance;
+    threshold 0.6→0.5, `ignoreLocation:true`. Same signature/weights.
+  - `data/sports/soccer.json` — added plain-language keywords to `Law 12.1.F`
+    (slide, from behind, ankle, challenge, lunge, caught, before the ball…).
+  - `lib/ai/prompts.ts` — implemented `observationPrompt` (was a stub): a
+    corpus-driven template that makes the model describe plays in officiating
+    vocabulary so descriptions are retrievable. (`adjudicationPrompt` still stub.)
+  Verified: foul/offside/handball/lacrosse queries now retrieve the correct rule
+  as a top candidate, no regressions. Live verdict for the foul case pending —
+  the key's daily free-tier quota (gemini-3.6-flash) was exhausted by testing;
+  the retrieval half is deterministic and confirmed.
+- **2026-07-23** — Lab adjudication now supports **OpenRouter** (OpenAI-compatible,
+  called via `fetch` — no new dep) and prefers it when `OPENROUTER_API_KEY` is
+  set, falling back to the Gemini SDK otherwise. Default OpenRouter model
+  `google/gemini-2.5-flash` (falls back to `openai/gpt-4o-mini`); override with
+  `OPENROUTER_MODEL`. Note: gpt-4o-mini mis-ruled the nuanced offside "level =
+  onside" case (FAIR instead of BAD); gemini-2.5-flash gets it right — model
+  choice affects accuracy on subtle rules. Verified live end-to-end: foul case →
+  BAD_CALL citing Law 12.1.F; offside → BAD_CALL citing Law 11.1. `.env.example`
+  documents both providers.
+- **2026-07-23** — Lab adjudication is now two-mode:
+  - **verdict mode** (a referee call was given) → FAIR/BAD/INCONCLUSIVE, as before;
+  - **ruling mode** (no call given) → the AI makes the call itself and returns a
+    `decision` (e.g. "Direct free kick — foul", "Send off — serious foul play")
+    plus a `severity` (no-offence / infringement / caution / dismissal). The lab
+    renders ruling severity as referee cards (yellow = caution, red = dismissal),
+    whistle/flag for infringement, green check for no-offence.
+  Lab-only (the frozen `AnalyzeResponse` can't express a self-ruling) — the route
+  now returns `result: LabResult` (discriminated by `mode`). Verified live:
+  ruling "studs-up lunge" → "Send off — serious foul play" (dismissal, red card).

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import type { SportCorpus, SportId } from '@/types/contract';
 
 /**
@@ -14,6 +16,22 @@ import type { SportCorpus, SportId } from '@/types/contract';
  *   missing or malformed (the route maps thrown errors to MODEL_ERROR, and
  *   an unknown sport is already rejected upstream as UNSUPPORTED_SPORT).
  */
-export function getSport(_id: SportId): SportCorpus {
-  throw new Error('NOT_IMPLEMENTED: Dev B');
+export function getSport(id: SportId): SportCorpus {
+  try {
+    const filePath = path.join(process.cwd(), 'data', 'sports', `${id}.json`);
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Sport rulebook file not found for ID: ${id}`);
+    }
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const corpus = JSON.parse(fileContent) as SportCorpus;
+    
+    // Basic structural validation
+    if (!corpus.id || !corpus.displayName || !Array.isArray(corpus.rules)) {
+      throw new Error(`Sport rulebook file at ${id}.json is malformed.`);
+    }
+    
+    return corpus;
+  } catch (error) {
+    throw new Error(`Failed to load sport corpus for ${id}: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }

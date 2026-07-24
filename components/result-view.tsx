@@ -70,13 +70,13 @@ export function ResultView({
 
       {previewUrl && (
         <div className="bezel lg:col-start-2">
-          <div className="bezel-core overflow-hidden bg-black/50 p-1.5">
+          <div className="bezel-core flex h-[min(62vh,34rem)] items-center overflow-hidden bg-black/50 p-1.5">
             {/* User-supplied clip with native controls — no caption track is
                 available for arbitrary uploads. */}
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video
               src={previewUrl}
-              className="mx-auto max-h-56 w-full rounded-xl object-contain lg:max-h-[52vh]"
+              className="h-full w-full rounded-xl object-contain"
               controls
               playsInline
               aria-label="Uploaded clip playback"

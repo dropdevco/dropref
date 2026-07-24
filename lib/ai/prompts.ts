@@ -13,12 +13,33 @@ import type { SportCorpus, SportRule } from '@/types/contract';
 
 /**
  * Stage 1 — observation.
- * MUST RETURN: a single prompt string that instructs the model to watch the
- * clip and describe, neutrally, only what is observable (using the corpus's
- * analystPersona and observationHints). No verdict at this stage.
+ * Returns a single prompt string instructing the model to describe, neutrally,
+ * only what is observable (driven by the corpus's analystPersona /
+ * observationHints / commonCalls). No verdict at this stage.
+ *
+ * NOTE (Dev A, at owner's request): drafted this template to close a retrieval
+ * gap — free-text descriptions like "slid in and caught his ankle" don't
+ * lexically match rulebook keywords ("tackle", "trip"), so the applicable rule
+ * never gets retrieved. The fix is to make the description speak the rulebook's
+ * language: it directs the model to use officiating terminology and name the
+ * likely offence from the sport's own `commonCalls`. Fully corpus-driven, no
+ * per-sport branching. Dev B: keep or adapt when wiring the pipeline.
  */
-export function observationPrompt(_corpus: SportCorpus): string {
-  throw new Error('NOT_IMPLEMENTED: Dev B');
+export function observationPrompt(corpus: SportCorpus): string {
+  const vocabulary = corpus.commonCalls.join(', ');
+  return `You are ${corpus.analystPersona}. Watch the clip and describe, in neutral and factual language, ONLY what is observable. Do NOT give a verdict, opinion, or ruling — a later step decides that.
+
+Focus your observation on: ${corpus.observationHints}
+
+Describe the mechanics precisely enough to be matched against the ${corpus.displayName} rulebook:
+- the specific action and the body parts / equipment involved, and the exact contact point;
+- the timing relative to the ball (before or after the ball was played or touched);
+- the players' positions and their direction and speed of movement;
+- the degree of control and intensity of any contact.
+
+Use standard ${corpus.displayName} officiating terminology. When an action resembles a recognised offence, name it using the sport's own vocabulary (for ${corpus.displayName}: ${vocabulary}). Prefer the words an official and the written Laws would use — e.g. "a reckless slide tackle that trips the opponent before the ball is played", not "he slid in and caught the guy's leg" — so the description can be reliably matched to the rulebook.
+
+Respond with 2–4 sentences of neutral description only.`;
 }
 
 /** Inputs to the stage-2 adjudication template. */
