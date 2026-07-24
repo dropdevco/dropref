@@ -66,8 +66,13 @@ const MOCK_DELAY_MS = 12_000;                           // simulated latency for
   the existing mock fixtures without changing `MOCK_SCENARIO` or uploading a clip.
 
 **Client-side validation** — [`components/clip.ts`](components/clip.ts):
-20MB cap (matches the server), 15s duration cap (UI-only, read from a detached
+20MB cap (matches the server), 18s duration cap (UI-only, read from a detached
 `<video>` before upload), accepts mp4/mov/webm.
+Uploaded clips open in an editor before analysis. Crop mode exposes a
+PowerPoint-style crop box with edge/corner handles; Zoom mode uses the same crop
+region but lets users drag it and pinch/wheel to zoom. Users must click **Set
+this video** to export the current edit to a cropped WebM via `lib/video-crop.ts`;
+only that set WebM is sent to `/api/analyze`.
 
 **Rulebook Lab (dev tool)** — [`/lab`](app/lab/page.tsx) + API
 [`/api/rules-lab`](app/api/rules-lab/route.ts) + adjudicator
@@ -100,6 +105,8 @@ All motion is CSS + `tailwindcss-animate` (no Motion/GSAP — dep-free per const
 
 **Component inventory** (all under `components/`):
 - `upload-zone.tsx` — drag-drop + file picker
+- `video-cropper.tsx` — canvas preview + Crop/Zoom modes for preparing the
+  submitted video
 - `sport-selector.tsx` — radio grid, driven by `SPORTS`
 - `sample-clips.tsx` — 2 clips/sport, one-click load from `/public/samples`
 - `analyzing-state.tsx` — staged copy on a `setInterval`, elapsed counter
@@ -213,6 +220,22 @@ in the same commit.** Specifically:
 - **2026-07-23** — Fixed portrait/vertical clip rendering by giving preview,
   analyzing, and result playback responsive video frames and fitting media with
   `object-contain` inside the frame instead of sizing from width and clipping.
+- **2026-07-23** — Added a 250ms duration metadata tolerance so browser-reported
+  `15.0s` clips do not get rejected due to tiny container/metadata drift.
+- **2026-07-23** — Raised the frontend-only clip duration guard from 15s to 18s
+  while keeping the 250ms metadata tolerance.
+- **2026-07-23** — Removed `next/font/google` so local dev/build no longer
+  depends on downloading Google Fonts; CSS variables now provide local system
+  font stacks for `font-sans` and `font-display`.
+- **2026-07-23** — Removed the main-screen sample/mock verdict testing panel
+  and added client-side crop before submit. The API now receives a cropped WebM
+  generated from the exact crop rectangle the user previews.
+- **2026-07-23** — Reworked crop UX into a PowerPoint-style crop box: users drag
+  the selected region or pull edge/corner handles, with no Wide/Square/Tall
+  presets and no pan sliders.
+- **2026-07-23** — Split video editing into explicit Crop and Zoom modes and
+  added a required "Set this video" step. Editing invalidates the previously set
+  file, and analysis only sends the generated edited WebM.
 - **2026-07-23** — Implemented the `getSport` loader in `lib/sports.ts` and structured/populated rules corpora for Soccer, Football, and Lacrosse under `data/sports/` based on the approved AI-friendly schema. Verified files and build.
 - **2026-07-23** — Implemented `retrieveRules` in `lib/rules/retrieve.ts` using Fuse.js with custom weights. Updated `data/sports/soccer.json` to include the exact detailed text and criteria for Law 11 (Offside Position, Offence, No Offence, Offences and Sanctions) as requested. Verification script and build passed.
 - **2026-07-23** — Updated `data/sports/soccer.json` Law 12 rules (Direct Free Kick Fouls, Handling the Ball, and Indirect Free Kick) with the exact detailed rules, criteria, and exceptions provided. Build and verification checks passed.

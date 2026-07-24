@@ -3,12 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
-  CircleCheck,
-  CircleHelp,
-  CircleX,
+  Check,
   Megaphone,
   Zap,
-  type LucideIcon,
 } from 'lucide-react';
 
 import type {
@@ -18,56 +15,29 @@ import type {
 } from '@/types/contract';
 import {
   analyzeClip,
-  analyzeMockScenario,
   isAnalyzeError,
-  type MockScenario,
 } from '@/lib/api-client';
 import {
+  DEFAULT_VIDEO_CROP,
+  cropVideoFile,
+  type VideoCrop,
+} from '@/lib/video-crop';
+import {
+  DURATION_METADATA_TOLERANCE_S,
   MAX_DURATION_S,
   checkFileMeta,
   readVideoDuration,
 } from '@/components/clip';
-import type { SportSample } from '@/components/sports';
 import { Button } from '@/components/ui/button';
 import { Whistle } from '@/components/whistle';
 import { UploadZone } from '@/components/upload-zone';
 import { SportSelector } from '@/components/sport-selector';
-import { SampleClips } from '@/components/sample-clips';
+import { VideoCropper } from '@/components/video-cropper';
 import { AnalyzingState } from '@/components/analyzing-state';
 import { ResultView } from '@/components/result-view';
 import { ErrorView } from '@/components/error-view';
 
 type Phase = 'idle' | 'analyzing' | 'result' | 'error';
-type DemoScenario = Exclude<MockScenario, 'error'>;
-
-const DEMO_SCENARIOS: {
-  scenario: DemoScenario;
-  label: string;
-  Icon: LucideIcon;
-  className: string;
-}[] = [
-  {
-    scenario: 'fair',
-    label: 'Fair',
-    Icon: CircleCheck,
-    className:
-      'border-card_green/35 text-card_green hover:bg-card_green/10 hover:text-card_green',
-  },
-  {
-    scenario: 'bad',
-    label: 'Bad',
-    Icon: CircleX,
-    className:
-      'border-card_red/35 text-card_red hover:bg-card_red/10 hover:text-card_red',
-  },
-  {
-    scenario: 'inconclusive',
-    label: 'Inconclusive',
-    Icon: CircleHelp,
-    className:
-      'border-card_yellow/35 text-card_yellow hover:bg-card_yellow/10 hover:text-card_yellow',
-  },
-];
 
 function BrandMark() {
   return (
@@ -85,47 +55,20 @@ function BrandMark() {
   );
 }
 
-function DemoVerdictControls({
-  disabled,
-  onSelect,
-}: {
-  disabled: boolean;
-  onSelect: (scenario: DemoScenario) => void;
-}) {
-  return (
-    <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-3">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="eyebrow">Animation test</span>
-        <span className="text-[11px] text-muted-foreground/70">mock only</span>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {DEMO_SCENARIOS.map(({ scenario, label, Icon, className }) => (
-          <Button
-            key={scenario}
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={disabled}
-            onClick={() => onSelect(scenario)}
-            className={`h-auto min-h-10 flex-col gap-1 whitespace-normal bg-transparent px-2 py-2 text-[11px] leading-tight ${className}`}
-          >
-            <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-            {label}
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [file, setFile] = useState<File | null>(null);
+  const [preparedFile, setPreparedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [submittedPreviewUrl, setSubmittedPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [crop, setCrop] = useState<VideoCrop>(DEFAULT_VIDEO_CROP);
   const [sport, setSport] = useState<SportId | null>(null);
   const [originalCall, setOriginalCall] = useState('');
   const [rejection, setRejection] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [settingVideo, setSettingVideo] = useState(false);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<AnalyzeError | null>(null);
 
@@ -148,6 +91,28 @@ export default function Home() {
     setPreviewUrl(url);
   }, []);
 
+  const submittedPreviewRef = useRef<string | null>(null);
+  const setSubmittedPreview = useCallback((url: string | null) => {
+    if (submittedPreviewRef.current) {
+      URL.revokeObjectURL(submittedPreviewRef.current);
+    }
+    submittedPreviewRef.current = url;
+    setSubmittedPreviewUrl(url);
+  }, []);
+
+  const clearPreparedVideo = useCallback(() => {
+    setPreparedFile(null);
+    setSubmittedPreview(null);
+  }, [setSubmittedPreview]);
+
+  const updateCrop = useCallback(
+    (nextCrop: VideoCrop) => {
+      setCrop(nextCrop);
+      clearPreparedVideo();
+    },
+    [clearPreparedVideo],
+  );
+
   const acceptFile = useCallback(
     async (candidate: File) => {
       setRejection(null);
@@ -161,15 +126,18 @@ export default function Home() {
       const url = URL.createObjectURL(candidate);
       try {
         const duration = await readVideoDuration(url);
-        if (duration > MAX_DURATION_S) {
+        if (duration > MAX_DURATION_S + DURATION_METADATA_TOLERANCE_S) {
           URL.revokeObjectURL(url);
           setRejection(
-            `Clip is ${duration.toFixed(1)}s. Keep it to ${MAX_DURATION_S}s or less.`,
+            `Clip is ${duration.toFixed(2)}s. Keep it to ${MAX_DURATION_S}s or less.`,
           );
           return;
         }
         setFile(candidate);
+        setPreparedFile(null);
+        setCrop(DEFAULT_VIDEO_CROP);
         setPreview(url);
+        setSubmittedPreview(null);
       } catch {
         URL.revokeObjectURL(url);
         setRejection('Could not read that video. Try a different file.');
@@ -177,37 +145,38 @@ export default function Home() {
         setBusy(false);
       }
     },
-    [setPreview],
+    [setPreview, setSubmittedPreview],
   );
 
-  const loadSample = useCallback(
-    async (sportId: SportId, sample: SportSample) => {
-      setRejection(null);
-      setBusy(true);
-      try {
-        const res = await fetch(sample.src);
-        if (!res.ok) throw new Error('missing');
-        const blob = await res.blob();
-        const name = sample.src.split('/').pop() ?? 'sample.mp4';
-        const asFile = new File([blob], name, {
-          type: blob.type || 'video/mp4',
-        });
-        setSport(sportId);
-        await acceptFile(asFile);
-      } catch {
-        setBusy(false);
-        setRejection('That sample clip isn’t available yet.');
-      }
-    },
-    [acceptFile],
-  );
+  const prepareVideo = useCallback(async () => {
+    if (!file) return;
+
+    setSettingVideo(true);
+    setRejection(null);
+    clearPreparedVideo();
+
+    try {
+      const videoForAnalysis = await cropVideoFile(file, crop);
+      setPreparedFile(videoForAnalysis);
+      setSubmittedPreview(URL.createObjectURL(videoForAnalysis));
+    } catch {
+      setRejection('Could not set that video. Try a different edit.');
+    } finally {
+      setSettingVideo(false);
+    }
+  }, [clearPreparedVideo, crop, file, setSubmittedPreview]);
 
   const onAnalyze = useCallback(async () => {
-    if (!file || !sport) return;
+    if (!preparedFile || !sport) {
+      setRejection('Set the edited video before checking the call.');
+      return;
+    }
     setBusy(true);
+    setRejection(null);
     setPhase('analyzing');
+
     const outcome = await analyzeClip({
-      video: file,
+      video: preparedFile,
       sport,
       originalCall: originalCall.trim() || null,
     });
@@ -219,39 +188,24 @@ export default function Home() {
       setPhase('result');
     }
     setBusy(false);
-  }, [file, sport, originalCall]);
-
-  const runDemoVerdict = useCallback(
-    async (scenario: DemoScenario) => {
-      setBusy(true);
-      setRejection(null);
-      setError(null);
-      setResult(null);
-      setPhase('analyzing');
-
-      const outcome = await analyzeMockScenario(scenario);
-      setResult({
-        ...outcome,
-        originalCall: originalCall.trim() || outcome.originalCall,
-      });
-      setPhase('result');
-      setBusy(false);
-    },
-    [originalCall],
-  );
+  }, [originalCall, preparedFile, sport]);
 
   const reset = useCallback(() => {
     setPreview(null);
+    setSubmittedPreview(null);
     setFile(null);
+    setPreparedFile(null);
+    setCrop(DEFAULT_VIDEO_CROP);
     setSport(null);
     setOriginalCall('');
     setRejection(null);
     setResult(null);
     setError(null);
     setPhase('idle');
-  }, [setPreview]);
+  }, [setPreview, setSubmittedPreview]);
 
-  const canAnalyze = Boolean(file && sport) && !busy;
+  const canAnalyze = Boolean(preparedFile && sport) && !busy && !settingVideo;
+  const canSetVideo = Boolean(file) && !busy && !settingVideo;
 
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-[1500px] flex-col px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
@@ -300,23 +254,21 @@ export default function Home() {
                       <div className="flex flex-1 flex-col p-5">
                         {previewUrl ? (
                           <div className="flex h-full flex-col gap-3">
-                            <div className="flex h-[min(64vh,540px)] min-h-[420px] flex-1 items-center overflow-hidden rounded-xl border border-white/10 bg-black/55 p-1.5">
-                              {/* User-supplied clip with native controls — no
-                                  caption track for arbitrary uploads. */}
-                              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                              <video
+                            <div className="min-h-[420px] flex-1">
+                              <VideoCropper
                                 src={previewUrl}
-                                className="h-full w-full rounded-lg object-contain"
-                                controls
-                                playsInline
-                                aria-label="Selected clip playback"
+                                crop={crop}
+                                onCropChange={updateCrop}
                               />
                             </div>
                             <button
                               type="button"
                               onClick={() => {
                                 setPreview(null);
+                                setSubmittedPreview(null);
                                 setFile(null);
+                                setPreparedFile(null);
+                                setCrop(DEFAULT_VIDEO_CROP);
                               }}
                               className="self-start rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                             >
@@ -395,15 +347,23 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="bezel">
-                    <div className="bezel-core space-y-4 p-4">
-                      <SampleClips onSelect={loadSample} disabled={busy} />
-                      <DemoVerdictControls
-                        disabled={busy}
-                        onSelect={runDemoVerdict}
-                      />
-                    </div>
-                  </div>
+                  {previewUrl && (
+                    <Button
+                      type="button"
+                      onClick={prepareVideo}
+                      disabled={!canSetVideo}
+                      variant={preparedFile ? 'outline' : 'default'}
+                      size="lg"
+                      className="h-12 w-full text-base"
+                    >
+                      <Check className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                      {settingVideo
+                        ? 'Setting video...'
+                        : preparedFile
+                          ? 'Video set'
+                          : 'Set this video'}
+                    </Button>
+                  )}
 
                   <Button
                     onClick={onAnalyze}
@@ -442,23 +402,21 @@ export default function Home() {
                   <div className="bezel-core space-y-5 p-5">
                     {previewUrl ? (
                       <div className="space-y-2">
-                        <div className="flex h-[min(62vh,32rem)] items-center overflow-hidden rounded-xl border border-white/10 bg-black/50 p-1.5">
-                          {/* User-supplied clip with native controls — no
-                              caption track for arbitrary uploads. */}
-                          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                          <video
+                        <div>
+                          <VideoCropper
                             src={previewUrl}
-                            className="h-full w-full rounded-lg object-contain"
-                            controls
-                            playsInline
-                            aria-label="Selected clip playback"
+                            crop={crop}
+                            onCropChange={updateCrop}
                           />
                         </div>
                         <button
                           type="button"
                           onClick={() => {
                             setPreview(null);
+                            setSubmittedPreview(null);
                             setFile(null);
+                            setPreparedFile(null);
+                            setCrop(DEFAULT_VIDEO_CROP);
                           }}
                           className="rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
@@ -512,12 +470,23 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <SampleClips onSelect={loadSample} disabled={busy} />
-
-                    <DemoVerdictControls
-                      disabled={busy}
-                      onSelect={runDemoVerdict}
-                    />
+                    {previewUrl && (
+                      <Button
+                        type="button"
+                        onClick={prepareVideo}
+                        disabled={!canSetVideo}
+                        variant={preparedFile ? 'outline' : 'default'}
+                        size="lg"
+                        className="w-full"
+                      >
+                        <Check className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                        {settingVideo
+                          ? 'Setting video...'
+                          : preparedFile
+                            ? 'Video set'
+                            : 'Set this video'}
+                      </Button>
+                    )}
 
                     <Button
                       onClick={onAnalyze}
@@ -537,13 +506,17 @@ export default function Home() {
 
           {phase === 'analyzing' && (
             <div className="mx-auto w-full max-w-5xl">
-              <AnalyzingState previewUrl={previewUrl} />
+              <AnalyzingState previewUrl={submittedPreviewUrl ?? previewUrl} />
             </div>
           )}
 
           {phase === 'result' && result && (
             <div className="mx-auto w-full max-w-6xl">
-              <ResultView result={result} previewUrl={previewUrl} onReset={reset} />
+              <ResultView
+                result={result}
+                previewUrl={submittedPreviewUrl ?? previewUrl}
+                onReset={reset}
+              />
             </div>
           )}
 
