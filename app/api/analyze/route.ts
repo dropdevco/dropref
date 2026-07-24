@@ -28,33 +28,37 @@ export async function POST(req: Request) {
     let finalVideoBase64 = videoBase64;
     let skeletonBase64 = null;
 
-    // Temporarily disabled YOLO CV service as requested
-    /*
-    try {
-      const cvFormData = new FormData();
-      cvFormData.append('video', videoFile);
+    // Call the hybrid CV service to get annotated video and telemetry
+    const enableCV = process.env.ENABLE_CV_SERVICE === 'true';
+    
+    if (enableCV) {
+      try {
+        const cvFormData = new FormData();
+        cvFormData.append('video', videoFile);
 
-      const cvRes = await fetch('http://127.0.0.1:8000/track', {
-        method: 'POST',
-        body: cvFormData,
-      });
+        const cvRes = await fetch('http://127.0.0.1:8000/track', {
+          method: 'POST',
+          body: cvFormData,
+        });
 
-      if (cvRes.ok) {
-        const cvData = await cvRes.json();
-        cvMetadata = cvData.metadata;
-        if (cvData.videoBase64) {
-          finalVideoBase64 = cvData.videoBase64;
+        if (cvRes.ok) {
+          const cvData = await cvRes.json();
+          cvMetadata = cvData.metadata;
+          if (cvData.videoBase64) {
+            finalVideoBase64 = cvData.videoBase64;
+          }
+          if (cvData.skeletonBase64) {
+            skeletonBase64 = cvData.skeletonBase64;
+          }
+        } else {
+          console.warn('CV service returned error:', cvRes.status);
         }
-        if (cvData.skeletonBase64) {
-          skeletonBase64 = cvData.skeletonBase64;
-        }
-      } else {
-        console.warn('CV service returned error:', cvRes.status);
+      } catch (e) {
+        console.warn('CV service unreachable. Proceeding with raw video.', e);
       }
-    } catch (e) {
-      console.warn('CV service unreachable. Proceeding with raw video.', e);
+    } else {
+      console.log('CV service is disabled via ENABLE_CV_SERVICE env var. Proceeding with raw video.');
     }
-    */
 
     const response = await runAnalysisPipeline(
       sport as SportId,

@@ -52,11 +52,17 @@ async def track_video(video: UploadFile = File(...)):
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     W = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     H = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    
+    print(f"\n[CV Pipeline] Starting new tracking job...")
+    print(f"[CV Pipeline] Total Frames: {total_frames} | Resolution: {W}x{H} | FPS: {fps}")
     
     fourcc = cv2.VideoWriter_fourcc(*'avc1')
     out = cv2.VideoWriter(annotated_path, fourcc, fps, (W, H))
     
     frame_count = 0
+    current_bbs = []
+    current_ball_boxes = []
     telemetry_events = []
     
     last_bx, last_by = None, None
@@ -69,6 +75,17 @@ async def track_video(video: UploadFile = File(...)):
             break
             
         frame_count += 1
+        
+        print(f"[CV Pipeline] Processing frame {frame_count}/{total_frames}...")
+        
+        # Calculate dynamic frame skip based on video progress
+        # First 25% and last 25% of video: heavy skipping (every 10 frames)
+        # Middle 50% of video (the action): light skipping (every 3 frames)
+        progress = frame_count / total_frames if total_frames > 0 else 0.5
+        if progress < 0.25 or progress > 0.75:
+            frame_skip = 10
+        else:
+            frame_skip = 3
         
         # 1. Periodically run OCR (e.g., once every 30 frames) to find scoreboard text
         if frame_count % 30 == 1:
@@ -95,34 +112,45 @@ async def track_video(video: UploadFile = File(...)):
                     "text": " | ".join(text_found)
                 })
 
-        # 2. Run Object Detection via RT-DETR
-        # Using a lower confidence to ensure we catch the ball and distant players
-        results = model(frame, conf=0.25, verbose=False)[0]
+        # 2. Run Object Detection via RT-DETR (Dynamic Frame Skip)
+        run_ai = (frame_count % frame_skip == 1)
         
-        # Extract bounding boxes for DeepSORT
-        bbs = []
-        ball_boxes = []
-        
-        if results.boxes is not None and len(results.boxes) > 0:
-            for box in results.boxes:
-                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
-                conf = float(box.conf[0].cpu().numpy())
-                cls = int(box.cls[0].cpu().numpy())
-                
-                w = x2 - x1
-                h = y2 - y1
-                
-                if cls == 0: # Person
-                    bbs.append(([x1, y1, w, h], conf, "person"))
-                elif cls == 32: # Sports Ball
-                    ball_boxes.append((x1, y1, x2, y2))
+        if run_ai:
+            # Running on CPU. (MPS causes a hard segfault with RT-DETR on Mac)
+            results = model(frame, conf=0.25, verbose=False)[0]
+            
+            bbs = []
+            ball_boxes = []
+            
+            if results.boxes is not None and len(results.boxes) > 0:
+                for box in results.boxes:
+                    x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                    conf = float(box.conf[0].cpu().numpy())
+                    cls = int(box.cls[0].cpu().numpy())
                     
-        # 3. Update DeepSORT Tracker (Players)
-        tracks = tracker.update_tracks(bbs, frame=frame)
+                    w = x2 - x1
+                    h = y2 - y1
+                    
+                    if cls == 0: # Person
+                        bbs.append(([x1, y1, w, h], conf, "person"))
+                    elif cls == 32: # Sports Ball
+                        ball_boxes.append((x1, y1, x2, y2))
+                        
+            current_bbs = bbs
+            current_ball_boxes = ball_boxes
+                    
+            # 3. Update DeepSORT Tracker (Players)
+            # Only update the tracker when we actually have fresh detections
+            # This completely avoids DeepSORT's internal CNN on skipped frames
+            current_tracks = tracker.update_tracks(current_bbs, frame=frame)
         
         person_centers = []
         
-        for track in tracks:
+        # Ensure current_tracks is defined for the very first frame even if somehow missed
+        if 'current_tracks' not in locals():
+            current_tracks = []
+        
+        for track in current_tracks:
             if not track.is_confirmed():
                 continue
             
@@ -153,7 +181,7 @@ async def track_video(video: UploadFile = File(...)):
                     })
                     
         # 4. Process Ball Telemetry
-        if ball_boxes:
+        if current_ball_boxes:
             best_bx, best_by = None, None
             if last_bx is not None and last_by is not None:
                 # Project predicted location based on momentum
@@ -161,7 +189,7 @@ async def track_video(video: UploadFile = File(...)):
                 pred_y = last_by + last_dy
                 
                 min_dist = float('inf')
-                for box in ball_boxes:
+                for box in current_ball_boxes:
                     cx = (box[0] + box[2]) / 2.0
                     cy = (box[1] + box[3]) / 2.0
                     dist = math.hypot(cx - pred_x, cy - pred_y)
@@ -186,8 +214,8 @@ async def track_video(video: UploadFile = File(...)):
                     })
                 last_speed = current_speed
             else:
-                best_bx = (ball_boxes[0][0] + ball_boxes[0][2]) / 2.0
-                best_by = (ball_boxes[0][1] + ball_boxes[0][3]) / 2.0
+                best_bx = (current_ball_boxes[0][0] + current_ball_boxes[0][2]) / 2.0
+                best_by = (current_ball_boxes[0][1] + current_ball_boxes[0][3]) / 2.0
                 last_dx, last_dy = 0.0, 0.0
                 last_speed = 0.0
                 
@@ -209,6 +237,8 @@ async def track_video(video: UploadFile = File(...)):
         
     cap.release()
     out.release()
+    
+    print(f"[CV Pipeline] Job complete! Processed {frame_count} frames.")
         
     metadata = {
         "frame_count": frame_count,
