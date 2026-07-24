@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { getSport } from '@/lib/sports';
-import { retrieveRules } from '@/lib/rules/retrieve';
+import { getSportCorpus } from '@/backend/sports';
+import { retrieveRules } from '@/backend/rules/retrieve';
 import {
   adjudicate,
   isAdjudicationAvailable,
@@ -20,12 +20,13 @@ export const maxDuration = 60;
  * POST /api/rules-lab  { sport, query, originalCall?, k? }
  *   Runs the decision pipeline on a supplied description, skipping the video +
  *   AI-description step:
- *     1. RETRIEVE — retrieveRules(getSport(sport), query, k) → candidate rules.
- *     2. ADJUDICATE — Gemini picks the applicable rule(s) and returns a verdict
- *        (AnalyzeResponse), the same shape the app produces. Requires
- *        GEMINI_API_KEY; without it we return candidates only.
+ *     1. RETRIEVE — retrieveRules(getSportCorpus(sport), query, k) → candidates.
+ *     2. ADJUDICATE — the LLM picks the applicable rule(s) and returns a verdict
+ *        or ruling. Requires OPENROUTER_API_KEY / GEMINI_API_KEY; without it we
+ *        return retrieval candidates only.
  *
- * Imports Dev B's getSport / retrieveRules but never edits them, nor lib/ai/**.
+ * Uses Dev B's backend/ pipeline (getSportCorpus, retrieveRules) after they
+ * relocated it from lib/ to backend/.
  */
 
 const SPORT_IDS = ['soccer', 'football', 'lacrosse'] as const;
@@ -113,8 +114,14 @@ export async function POST(request: Request) {
   let corpus;
   let matches: SportRule[];
   try {
-    corpus = getSport(sport);
-    matches = retrieveRules(corpus, query, k);
+    corpus = getSportCorpus(sport);
+    // backend/retrieveRules returns CitedRule[] (code/title/text); map codes
+    // back to the full SportRule (keywords/callTypes) for the lab's display
+    // and to pass rich candidates to the adjudicator.
+    const byCode = new Map(corpus.rules.map((r) => [r.code, r]));
+    matches = retrieveRules(corpus, query, k)
+      .map((c) => byCode.get(c.code))
+      .filter((r): r is SportRule => Boolean(r));
   } catch (err) {
     const message =
       err instanceof Error ? err.message : 'Retrieval failed unexpectedly.';

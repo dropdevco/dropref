@@ -1,0 +1,206 @@
+{
+  "id": "lacrosse",
+  "displayName": "Men's Lacrosse",
+  "governingBody": "NCAA Men's Lacrosse Rules",
+  "officialTitle": "referee",
+  "analystPersona": "a lacrosse officiating analyst",
+  "observationHints": "Note the exact location of stick contact (gloves, arms, head), the direction and force of body checks, and whether offensive players make contact with the crease cylinder.",
+  "commonCalls": [
+    "crease violation",
+    "slash",
+    "illegal body check",
+    "offside",
+    "warding"
+  ],
+  "rules": [
+    {
+      "code": "Rule 5, Section 7",
+      "title": "Slashing",
+      "text": "Slashing is the swinging of a crosse at an opponent's crosse or body with deliberate viciousness or reckless abandon, regardless of whether the opponent's crosse or body is struck. A strike on the arm, chest, back or anywhere other than the gloved hand holding the stick can be ruled a slash.",
+      "keywords": [
+        "slash",
+        "slashing",
+        "stick check",
+        "arm",
+        "helmet",
+        "reckless abandon",
+        "vicious"
+      ],
+      "callTypes": [
+        "slash"
+      ]
+    },
+    {
+      "code": "Rule 5, Section 7 (Exceptions)",
+      "title": "Legal Stick Checks",
+      "text": "A strike by the crosse on the gloved hand or hands of an opponent who is in possession of the ball or is within 5 yards of a loose ball is not a slash.",
+      "keywords": [
+        "slash",
+        "legal check",
+        "gloved hand",
+        "possession",
+        "stick on stick"
+      ],
+      "callTypes": [
+        "slash"
+      ]
+    },
+    {
+      "code": "Rule 5, Section 3",
+      "title": "Illegal Body Check",
+      "text": "Body-checking of an opponent who is not in possession of the ball or within 5 yards of a loose ball is an illegal body check. An illegal body check is also one where the contact is from the rear, at or below the waist, or above the shoulders.",
+      "keywords": [
+        "illegal body check",
+        "late hit",
+        "from the rear",
+        "blindside",
+        "above shoulders",
+        "head contact"
+      ],
+      "callTypes": [
+        "illegal body check"
+      ]
+    },
+    {
+      "code": "Rule 4, Section 20",
+      "title": "Crease Violation (Offense)",
+      "text": "An attacking player shall not be in the opponent's goal-crease cylinder at any time. If an attacking player's body or stick touches the crease, the goal line or the airspace above it, play shall be suspended and possession awarded to the defense.",
+      "keywords": [
+        "crease",
+        "crease violation",
+        "goal crease",
+        "cylinder",
+        "step in crease",
+        "toe on line"
+      ],
+      "callTypes": [
+        "crease violation"
+      ]
+    },
+    {
+      "code": "Rule 4, Section 21",
+      "title": "Goal Scored (Dive Rule)",
+      "text": "If an offensive player dives or jumps and their momentum carries them into the crease, the goal shall count if the ball enters the goal before any contact with the crease, and the player does not contact the goalkeeper.",
+      "keywords": [
+        "crease dive",
+        "dive",
+        "momentum",
+        "crease violation",
+        "goal counts",
+        "goalkeeper contact"
+      ],
+      "callTypes": [
+        "crease violation"
+      ]
+    },
+    {
+      "code": "Rule 4, Section 10",
+      "title": "Offside",
+      "text": "A team is considered offside when it has more than six players in its offensive half of the field (between the centerline and the end line) or more than seven players in its defensive half of the field.",
+      "keywords": [
+        "offside",
+        "midfield line",
+        "centerline",
+        "too many men",
+        "transition",
+        "half field"
+      ],
+      "callTypes": [
+        "offside"
+      ]
+    },
+    {
+      "code": "Rule 6, Section 11",
+      "title": "Warding Off",
+      "text": "A player in possession of the ball shall not use his free hand or arm or any other part of his body to hold, push or control the direction of the movement of the crosse or body of the player applying the check.",
+      "keywords": [
+        "ward",
+        "warding off",
+        "free hand",
+        "push",
+        "stiff arm",
+        "control direction"
+      ],
+      "callTypes": [
+        "warding"
+      ]
+    },
+    {
+      "code": "Rule 6, Section 5",
+      "title": "Holding",
+      "text": "A player shall not impede the movement of an opponent or his crosse. A player may not hold an opponent with his crosse, step on the opponent's crosse, or hold the opponent with his free hand.",
+      "keywords": [
+        "hold",
+        "holding",
+        "impede",
+        "grab",
+        "pin stick",
+        "step on stick"
+      ],
+      "callTypes": [
+        "illegal body check"
+      ]
+    },
+    {
+      "code": "Rule 5, Section 4",
+      "title": "Cross-Check",
+      "text": "A player may not check his opponent with his crosse in a cross-check position. That is, a check with that part of the handle of the crosse that is between the player's hands, either by thrusting it away from the body or by holding it extended from the body.",
+      "keywords": [
+        "cross-check",
+        "handle",
+        "between hands",
+        "thrust",
+        "shaft check"
+      ],
+      "callTypes": [
+        "illegal body check"
+      ]
+    },
+    {
+      "code": "Rule 5, Section 11",
+      "title": "Unnecessary Roughness",
+      "text": "An excessively violent infraction of the rules against holding and pushing. Also, a deliberate and excessively violent contact made by a defensive player against an offensive player who has established a screening position.",
+      "keywords": [
+        "unnecessary roughness",
+        "violent",
+        "excessive",
+        "late hit",
+        "screen",
+        "blindside"
+      ],
+      "callTypes": [
+        "illegal body check"
+      ]
+    },
+    {
+      "code": "Rule 4, Section 18",
+      "title": "Goalkeeper Interference",
+      "text": "When the goalkeeper is within the crease, an attacking player may not interfere with the goalkeeper or the goalkeeper's crosse. The goalkeeper's crosse may be checked when outside the crease.",
+      "keywords": [
+        "goalkeeper interference",
+        "goalie",
+        "crease",
+        "check goalie",
+        "contact goalie"
+      ],
+      "callTypes": [
+        "crease violation"
+      ]
+    },
+    {
+      "code": "Rule 6, Section 9",
+      "title": "Pushing",
+      "text": "A player shall not thrust or shove an opponent from the rear. A push is exerting pressure to force an opponent to move in a direction other than his intended direction.",
+      "keywords": [
+        "push",
+        "pushing",
+        "from the rear",
+        "shove",
+        "in the back"
+      ],
+      "callTypes": [
+        "illegal body check"
+      ]
+    }
+  ]
+}
