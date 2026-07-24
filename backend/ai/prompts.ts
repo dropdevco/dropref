@@ -27,6 +27,11 @@ Report:
 If the clip is too short, too low quality, or the key moment is not
 clearly visible, say so plainly and specifically.
 
+Use precise, standard ${corpus.displayName} terminology when describing
+actions (e.g. "reckless slide tackle that trips the opponent before the
+ball", not "he slid in and caught the guy's leg"), so the description can
+be matched to the written Laws. Do NOT cite rule numbers or judge the call.
+
 Return 3-6 sentences of plain description.`;
 }
 
