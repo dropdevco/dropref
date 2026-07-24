@@ -1,17 +1,17 @@
 'use client';
 
-import { Eye, RotateCcw, Scale, ScrollText, Flag } from 'lucide-react';
+import { Eye, Flag, RotateCcw, Scale, ScrollText } from 'lucide-react';
 
-import type { AnalyzeResponse } from '@/types/contract';
-import { Button } from '@/components/ui/button';
+import { ConfidenceMeter, CONFIDENCE_LABEL } from '@/components/confidence-meter';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
 import { VerdictBadge, VERDICT_LABEL } from '@/components/verdict-badge';
-import { ConfidenceMeter, CONFIDENCE_LABEL } from '@/components/confidence-meter';
+import type { AnalyzeResponse } from '@/types/contract';
 
 function Section({
   icon: Icon,
@@ -42,7 +42,7 @@ export function ResultView({
   previewUrl: string | null;
   onReset: () => void;
 }) {
-  const videoSrc = result.annotatedVideoBase64 
+  const videoSrc = result.annotatedVideoBase64
     ? `data:video/mp4;base64,${result.annotatedVideoBase64}`
     : previewUrl;
 
@@ -53,34 +53,49 @@ export function ResultView({
         {CONFIDENCE_LABEL[result.confidence]}.
       </p>
 
-      {/* verdict hero */}
-      <div className="bezel lg:sticky lg:top-6">
-        <div className="bezel-core flex flex-col items-center gap-5 px-6 py-8 lg:min-h-[520px] lg:justify-center">
-          <VerdictBadge verdict={result.verdict} />
-          {result.originalCall && (
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted-foreground">
-              <Flag className="h-3 w-3" strokeWidth={1.5} aria-hidden />
-              Ref called:{' '}
-              <span className="font-medium text-foreground">
-                {result.originalCall}
-              </span>
-            </p>
-          )}
-          <div className="w-full max-w-xs">
-            <ConfidenceMeter confidence={result.confidence} />
+      <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+        <div className="bezel">
+          <div className="bezel-core flex flex-col items-center gap-5 px-6 py-8 lg:min-h-[520px] lg:justify-center">
+            <VerdictBadge verdict={result.verdict} />
+            {result.originalCall && (
+              <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted-foreground">
+                <Flag className="h-3 w-3" strokeWidth={1.5} aria-hidden />
+                Ref called:{' '}
+                <span className="font-medium text-foreground">
+                  {result.originalCall}
+                </span>
+              </p>
+            )}
+            <div className="w-full max-w-xs">
+              <ConfidenceMeter confidence={result.confidence} />
+            </div>
           </div>
         </div>
-      </div>
+
+        <div className="flex flex-col items-center gap-3">
+          <Button onClick={onReset} size="lg" className="w-full">
+            <RotateCcw className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+            Review another play
+          </Button>
+          <p className="eyebrow">
+            <span className="tabular">
+              {(result.processingMs / 1000).toFixed(1)}s
+            </span>{' '}
+            analyzed
+          </p>
+        </div>
+      </aside>
 
       {videoSrc && (
         <div className="bezel overflow-hidden lg:col-start-2">
           <div className="flex items-center justify-center gap-1.5 border-b border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-muted-foreground">
             <Eye className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
-            {result.annotatedVideoBase64 ? 'Computer Vision Processed' : 'Original Video'}
+            {result.annotatedVideoBase64
+              ? 'Computer Vision Processed'
+              : 'Original Video'}
           </div>
           <div className="bezel-core flex h-[min(62vh,34rem)] items-center overflow-hidden rounded-t-none bg-black/50 p-1.5">
-            {/* User-supplied clip with native controls — no caption track is
-                available for arbitrary uploads. */}
+            {/* User-supplied clip with native controls; no caption track is available for arbitrary uploads. */}
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video
               src={videoSrc}
@@ -110,7 +125,7 @@ export function ResultView({
               <AccordionTrigger className="hover:no-underline">
                 <span className="eyebrow">
                   <ScrollText className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
-                  Rulebook · {result.rulesCited.length} cited
+                  Rulebook - {result.rulesCited.length} cited
                 </span>
               </AccordionTrigger>
               <AccordionContent>
@@ -139,19 +154,6 @@ export function ResultView({
           </Accordion>
         </div>
       )}
-
-      <div className="flex flex-col items-center gap-3 pt-1 lg:col-start-1 lg:row-start-2">
-        <Button onClick={onReset} size="lg" className="w-full">
-          <RotateCcw className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
-          Review another play
-        </Button>
-        <p className="eyebrow">
-          <span className="tabular">
-            {(result.processingMs / 1000).toFixed(1)}s
-          </span>{' '}
-          · analyzed
-        </p>
-      </div>
     </div>
   );
 }
