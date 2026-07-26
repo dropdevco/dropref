@@ -20,6 +20,7 @@ import {
 import {
   DEFAULT_VIDEO_CROP,
   cropVideoFile,
+  isDefaultCrop,
   type VideoCrop,
 } from '@/lib/video-crop';
 import {
@@ -30,6 +31,8 @@ import {
 } from '@/components/clip';
 import { Button } from '@/components/ui/button';
 import { Whistle } from '@/components/whistle';
+import { RefereeMark } from '@/components/referee-mark';
+import { SetVideoProgress } from '@/components/set-video-progress';
 import { UploadZone } from '@/components/upload-zone';
 import { SportSelector } from '@/components/sport-selector';
 import { VideoCropper } from '@/components/video-cropper';
@@ -39,14 +42,19 @@ import { ErrorView } from '@/components/error-view';
 
 type Phase = 'idle' | 'analyzing' | 'result' | 'error';
 
+/**
+ * Clips larger than this are transcoded (downscaled) before analysis even when
+ * the user made no edits. The server base64-encodes the file, inflating it by
+ * ~1.37x, and the model rejects oversized inline payloads — so an untouched
+ * 15MB upload would fail where a downscaled one succeeds.
+ */
+const MAX_DIRECT_UPLOAD_BYTES = 8 * 1024 * 1024;
+
 function BrandMark() {
   return (
     <div className="flex items-center gap-2.5">
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-b from-white/10 to-white/[0.02] ring-1 ring-inset ring-white/10">
-        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
-          <circle cx="12" cy="12" r="9.5" fill="none" stroke="#f8fafc" strokeWidth="1.6" />
-          <path d="M7.5 12.4l3 3 6-6.4" fill="none" stroke="hsl(152 62% 46%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <RefereeMark className="h-6 w-6" />
       </span>
       <span className="font-display text-lg font-bold tracking-tight">
         RefCheck<span className="text-primary"> AI</span>
@@ -69,6 +77,7 @@ export default function Home() {
   const [rejection, setRejection] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [settingVideo, setSettingVideo] = useState(false);
+  const [setProgress, setSetProgress] = useState(0);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<AnalyzeError | null>(null);
 
@@ -152,11 +161,12 @@ export default function Home() {
     if (!file) return;
 
     setSettingVideo(true);
+    setSetProgress(0);
     setRejection(null);
     clearPreparedVideo();
 
     try {
-      const videoForAnalysis = await cropVideoFile(file, crop);
+      const videoForAnalysis = await cropVideoFile(file, crop, setSetProgress);
       setPreparedFile(videoForAnalysis);
       setSubmittedPreview(URL.createObjectURL(videoForAnalysis));
     } catch {
@@ -167,16 +177,33 @@ export default function Home() {
   }, [clearPreparedVideo, crop, file, setSubmittedPreview]);
 
   const onAnalyze = useCallback(async () => {
-    if (!preparedFile || !sport) {
-      setRejection('Set the edited video before checking the call.');
+    let videoToAnalyze = preparedFile ?? file;
+    if (!videoToAnalyze || !sport) {
+      setRejection(
+        preparedFile || file
+          ? 'Pick a sport before checking the call.'
+          : 'Add a clip before checking the call.',
+      );
       return;
     }
     setBusy(true);
     setRejection(null);
     setPhase('analyzing');
 
+    // An unedited clip skips the crop step, which is also the only place the
+    // video gets downscaled. Raw uploads (up to 20MB) are base64-inflated by
+    // ~1.37x server-side and would blow the model's inline-payload limit, so
+    // transcode oversized clips transparently — no extra click for the user.
+    if (!preparedFile && videoToAnalyze.size > MAX_DIRECT_UPLOAD_BYTES) {
+      try {
+        videoToAnalyze = await cropVideoFile(videoToAnalyze, crop);
+      } catch {
+        // Fall through with the original file; the API surfaces any failure.
+      }
+    }
+
     const outcome = await analyzeClip({
-      video: preparedFile,
+      video: videoToAnalyze,
       sport,
       originalCall: originalCall.trim() || null,
     });
@@ -188,7 +215,7 @@ export default function Home() {
       setPhase('result');
     }
     setBusy(false);
-  }, [originalCall, preparedFile, sport]);
+  }, [crop, file, originalCall, preparedFile, sport]);
 
   const reset = useCallback(() => {
     setPreview(null);
@@ -204,8 +231,13 @@ export default function Home() {
     setPhase('idle');
   }, [setPreview, setSubmittedPreview]);
 
-  const canAnalyze = Boolean(preparedFile && sport) && !busy && !settingVideo;
+  const hasEdits = !isDefaultCrop(crop);
+  const canAnalyze =
+    Boolean(file && sport && (!hasEdits || preparedFile)) &&
+    !busy &&
+    !settingVideo;
   const canSetVideo = Boolean(file) && !busy && !settingVideo;
+  const needsSetVideo = hasEdits && !preparedFile;
 
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-[1500px] flex-col px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
@@ -217,10 +249,14 @@ export default function Home() {
         </span>
       </header>
 
+      {/* Focus moves here on phase change so screen readers land on the new
+          view. It is tabIndex={-1} (not reachable by Tab), so it deliberately
+          shows no focus ring — a ring around the whole page reads as a stray
+          border, and the view change is its own visual affordance. */}
       <section
         ref={stageRef}
         tabIndex={-1}
-        className="flex flex-1 items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex flex-1 items-center rounded-lg outline-none"
       >
         <div
           key={phase}
@@ -231,8 +267,7 @@ export default function Home() {
               <div className="hidden gap-7 py-3 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(390px,460px)] lg:items-start">
                 <div className="space-y-5">
                   <div className="max-w-3xl">
-                    <span className="eyebrow">Soccer · Football · Lacrosse</span>
-                    <h1 className="mt-3 font-display text-6xl font-bold leading-[1.02] tracking-tight xl:text-7xl">
+                    <h1 className="font-display text-6xl font-bold leading-[1.02] tracking-tight xl:text-7xl">
                       Was it the{' '}
                       <span className="text-primary text-glow-green">right call?</span>
                     </h1>
@@ -295,7 +330,7 @@ export default function Home() {
                         Select context, then run the call.
                       </p>
                     </div>
-                    <Whistle className="w-24" />
+                    <RefereeMark className="w-24" glow />
                   </div>
 
                   {rejection && (
@@ -347,22 +382,28 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {previewUrl && (
-                    <Button
-                      type="button"
-                      onClick={prepareVideo}
-                      disabled={!canSetVideo}
-                      variant={preparedFile ? 'outline' : 'default'}
-                      size="lg"
-                      className="h-12 w-full text-base"
-                    >
-                      <Check className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
-                      {settingVideo
-                        ? 'Setting video...'
-                        : preparedFile
-                          ? 'Video set'
-                          : 'Set this video'}
-                    </Button>
+                  {previewUrl && hasEdits && (
+                    settingVideo ? (
+                      <SetVideoProgress ratio={setProgress} />
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={prepareVideo}
+                        disabled={!canSetVideo}
+                        variant={preparedFile ? 'outline' : 'default'}
+                        size="lg"
+                        className="h-12 w-full text-base"
+                      >
+                        <Check className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                        {preparedFile ? 'Video set' : 'Set this video'}
+                      </Button>
+                    )
+                  )}
+
+                  {needsSetVideo && (
+                    <p className="text-xs text-muted-foreground">
+                      You edited the crop/zoom — set the video above before checking the call.
+                    </p>
                   )}
 
                   <Button
@@ -380,10 +421,7 @@ export default function Home() {
               <div className="grid items-center gap-8 py-4 lg:hidden">
               {/* hero */}
               <div className="order-1 text-center lg:text-left">
-                <span className="eyebrow justify-center lg:justify-start">
-                  ⚽ Soccer · 🏈 Football · 🥍 Lacrosse
-                </span>
-                <h1 className="mt-4 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+                <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
                   Was it the{' '}
                   <span className="text-primary text-glow-green">right call?</span>
                 </h1>
@@ -392,7 +430,7 @@ export default function Home() {
                   rules on it — cited against the official rulebook, in seconds.
                 </p>
                 <div className="mt-8 hidden justify-center lg:flex lg:justify-start">
-                  <Whistle className="w-52" />
+                  <RefereeMark className="w-52" glow />
                 </div>
               </div>
 
@@ -470,22 +508,28 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {previewUrl && (
-                      <Button
-                        type="button"
-                        onClick={prepareVideo}
-                        disabled={!canSetVideo}
-                        variant={preparedFile ? 'outline' : 'default'}
-                        size="lg"
-                        className="w-full"
-                      >
-                        <Check className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
-                        {settingVideo
-                          ? 'Setting video...'
-                          : preparedFile
-                            ? 'Video set'
-                            : 'Set this video'}
-                      </Button>
+                    {previewUrl &&
+                      hasEdits &&
+                      (settingVideo ? (
+                        <SetVideoProgress ratio={setProgress} />
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={prepareVideo}
+                          disabled={!canSetVideo}
+                          variant={preparedFile ? 'outline' : 'default'}
+                          size="lg"
+                          className="w-full"
+                        >
+                          <Check className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                          {preparedFile ? 'Video set' : 'Set this video'}
+                        </Button>
+                      ))}
+
+                    {needsSetVideo && (
+                      <p className="text-xs text-muted-foreground">
+                        You edited the crop/zoom — set the video above before checking the call.
+                      </p>
                     )}
 
                     <Button
@@ -529,7 +573,8 @@ export default function Home() {
       </section>
 
       <footer className="mt-8 text-center text-[11px] text-muted-foreground/70">
-        RefCheck AI · verdicts are informational, not official rulings.
+        RefCheck AI · every call cited against the official rulebook — IFAB Laws
+        of the Game, NFL Rulebook &amp; NCAA Men&apos;s Lacrosse Rules.
       </footer>
     </main>
   );
