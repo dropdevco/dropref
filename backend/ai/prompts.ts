@@ -2,12 +2,18 @@ import { SportCorpus, CitedRule } from '../../types/contract';
 
 export function buildObservationPrompt(corpus: SportCorpus, originalCall: string | null, cvMetadata: any = null): string {
   const focusContext = originalCall 
-    ? `The original call on the field was: "${originalCall}". Focus your observation strictly on the players, contact, and events relevant to this specific call.`
+    ? `The original call on the field was: "${originalCall}". \n\nCRITICAL INSTRUCTION: You MUST use this call to filter out irrelevant information. Do NOT report on things unrelated to the call. For example, if the call is "offside", focus entirely on player positioning relative to the defense and the ball release; ignore minor fouls or handballs elsewhere. If the call is a "foul", focus strictly on the physical contact of the players involved.`
     : `For this sport specifically, pay attention to: ${corpus.observationHints}`;
 
   const cvContext = cvMetadata
-    ? `\n[COMPUTER VISION SYSTEM DATA]\nThe provided video has been pre-processed. Bounding boxes and skeletal tracking lines have been drawn onto the players. Metadata found: ${JSON.stringify(cvMetadata)}\n\nCRITICAL INSTRUCTION: The 'telemetry' array contains mathematically calculated physics events (e.g. BALL_KICKED, PLAYER_COLLISION). You MUST treat these telemetry events as absolute mathematical facts. Use the exact frame numbers provided in the telemetry to pinpoint when the decisive action occurred in the video.\nPlease cross-reference this hard tracking data with your visual analysis.\n`
+    ? `\n[COMPUTER VISION SYSTEM DATA]\nThe provided video has been pre-processed. Bounding boxes and skeletal tracking lines have been drawn onto the players. Metadata found: ${JSON.stringify(cvMetadata)}\n\nCRITICAL INSTRUCTION: The 'telemetry' array contains physics events (e.g. PLAYER_PROXIMITY_DETECTED, BALL_ACCELERATION_SPIKE). Use this metadata strictly as a map to locate the critical moments in the video or key frame images. Do NOT just regurgitate or read back the JSON data in your report. You must watch the video or images at those specific frames and describe the physical visual action (e.g., describe the actual tackle or foul visually). Never mention "units of distance" or "frames" in your final report.\n`
     : '';
+
+  const strictGroundingContext = `CRITICAL INSTRUCTION ON HALLUCINATIONS: You MUST NOT guess or assume any details about the broader field or player roles that are not 100% explicitly visible in the video.
+- Do NOT mention the "penalty area", "18-yard box", "goal line", or "out of bounds" unless you can clearly see the painted white lines on the grass in the frame.
+- Do NOT assume a player is the "last defender" or guess their exact tactical position. Just call them "attacker" and "defender" based on ball possession.
+- If the video has a pure black background (Computer Vision mode), do NOT guess jersey colors, field markings, or environmental details. Describe ONLY the isolated objects/skeletons provided.
+- CRITICAL: Do NOT guess or hallucinate the outcome of a tackle or the ball's trajectory (e.g., "the ball deflected away" or "sent flying forward") unless you can see it with absolute 100% certainty. If the frames are blurry, simply describe the leg extensions without guessing what happened to the ball.`;
 
   return `You are a neutral sports video analyst. Watch this ${corpus.displayName} clip.
 
@@ -16,16 +22,14 @@ call was correct. Do not mention rules.
 
 ${focusContext}
 ${cvContext}
+${strictGroundingContext}
 
 Report:
 1. The sequence of events, in order
 2. Player positions and movement at the decisive moment
 3. Body positioning, point of contact, ball or object position
-4. Camera limitations — state explicitly what is NOT visible,
-   obscured, or off-screen
 
-If the clip is too short, too low quality, or the key moment is not
-clearly visible, say so plainly and specifically.
+CRITICAL: Do NOT hedge or be overly cautious. Vision models often complain about "wide angles" or "fast action" — ignore this instinct. If you can reasonably infer the point of contact from the players' momentum, trajectories, or reactions, state it confidently. Do not use phrases like "not clearly visible" or "hard to tell" unless the action is literally physically blocked by another object or completely off-screen.
 
 Use precise, standard ${corpus.displayName} terminology when describing
 actions (e.g. "reckless slide tackle that trips the opponent before the

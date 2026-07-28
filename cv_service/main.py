@@ -53,9 +53,14 @@ async def track_video(video: UploadFile = File(...)):
     W = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     H = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if total_frames < 0 or total_frames > 1000000:
+        total_frames = 0
     
     print(f"\n[CV Pipeline] Starting new tracking job...")
-    print(f"[CV Pipeline] Total Frames: {total_frames} | Resolution: {W}x{H} | FPS: {fps}")
+    if total_frames > 0:
+        print(f"[CV Pipeline] Total Frames: {total_frames} | Resolution: {W}x{H} | FPS: {fps}")
+    else:
+        print(f"[CV Pipeline] Resolution: {W}x{H} | FPS: {fps} (Total frames unknown)")
     
     fourcc = cv2.VideoWriter_fourcc(*'avc1')
     out = cv2.VideoWriter(annotated_path, fourcc, fps, (W, H))
@@ -64,6 +69,8 @@ async def track_video(video: UploadFile = File(...)):
     current_bbs = []
     current_ball_boxes = []
     telemetry_events = []
+    key_frames = []
+    last_key_frame_saved = -999
     
     last_bx, last_by = None, None
     last_dx, last_dy = 0.0, 0.0
@@ -76,7 +83,10 @@ async def track_video(video: UploadFile = File(...)):
             
         frame_count += 1
         
-        print(f"[CV Pipeline] Processing frame {frame_count}/{total_frames}...")
+        if total_frames > 0:
+            print(f"[CV Pipeline] Processing frame {frame_count}/{total_frames}...")
+        else:
+            print(f"[CV Pipeline] Processing frame {frame_count}...")
         
         # Calculate dynamic frame skip based on video progress
         # First 25% and last 25% of video: heavy skipping (every 10 frames)
@@ -179,6 +189,10 @@ async def track_video(video: UploadFile = File(...)):
                         "ids": [c1[2], c2[2]],
                         "distance": round(dist, 1)
                     })
+                    if frame_count - last_key_frame_saved > 10 and len(key_frames) < 3:
+                        _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+                        key_frames.append(base64.b64encode(buffer).decode('utf-8'))
+                        last_key_frame_saved = frame_count
                     
         # 4. Process Ball Telemetry
         if current_ball_boxes:
@@ -212,6 +226,10 @@ async def track_video(video: UploadFile = File(...)):
                         "velocity": round(current_speed, 1),
                         "acceleration": round(acceleration, 1)
                     })
+                    if frame_count - last_key_frame_saved > 10 and len(key_frames) < 3:
+                        _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+                        key_frames.append(base64.b64encode(buffer).decode('utf-8'))
+                        last_key_frame_saved = frame_count
                 last_speed = current_speed
             else:
                 best_bx = (current_ball_boxes[0][0] + current_ball_boxes[0][2]) / 2.0
@@ -254,5 +272,6 @@ async def track_video(video: UploadFile = File(...)):
     return JSONResponse(content={
         "metadata": metadata,
         "videoBase64": video_b64,
+        "keyFramesBase64": key_frames,
         "mimeType": "video/mp4"
     })

@@ -68,12 +68,14 @@ async function openRouterChat({
   videoBase64,
   videoMimeType,
   skeletonBase64,
+  keyFramesBase64,
   json = false,
 }: {
   prompt: string;
   videoBase64?: string | null;
   videoMimeType?: string;
   skeletonBase64?: string | null;
+  keyFramesBase64?: string[] | null;
   json?: boolean;
 }): Promise<string> {
   const key = process.env.OPENROUTER_API_KEY;
@@ -105,6 +107,15 @@ async function openRouterChat({
         },
       },
     );
+  }
+  if (keyFramesBase64 && keyFramesBase64.length > 0) {
+    content.push({ type: 'text', text: 'Here are high-resolution still frames captured at the exact moments of physical contact or ball strikes to help you see the details:' });
+    keyFramesBase64.forEach(img => {
+      content.push({
+        type: 'image_url',
+        imageUrl: { url: `data:image/jpeg;base64,${img}` }
+      });
+    });
   }
 
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -147,23 +158,87 @@ async function openRouterChat({
   return text;
 }
 
+async function localMlxChat({
+  prompt,
+  videoBase64,
+  videoMimeType,
+  skeletonBase64,
+  json = false,
+}: {
+  prompt: string;
+  videoBase64?: string | null;
+  videoMimeType?: string;
+  skeletonBase64?: string | null;
+  json?: boolean;
+}): Promise<string> {
+  const formData = new FormData();
+  
+  if (json) {
+    prompt += "\n\nYou MUST return only valid JSON matching the AdjudicationSchema. Do not include markdown formatting or conversational text.";
+  }
+  formData.append('prompt', prompt);
+  
+  // We prefer the skeleton video if we have it, else raw video
+  const targetVideoBase64 = skeletonBase64 || videoBase64;
+  
+  if (targetVideoBase64) {
+    // Convert base64 to Blob
+    const byteCharacters = atob(targetVideoBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: videoMimeType || 'video/mp4' });
+    formData.append('video', blob, 'video.mp4');
+  }
+
+  const res = await fetch('http://localhost:8000/analyze-mlx', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Local MLX ${res.status}: ${body}`);
+  }
+
+  const data = await res.json();
+  if (data.error) {
+    throw new Error(`Local MLX Error: ${data.error}`);
+  }
+
+  return data.text;
+}
+
 async function observePlay({
   prompt,
   videoBase64,
   videoMimeType,
   skeletonBase64,
+  keyFramesBase64,
 }: {
   prompt: string;
   videoBase64: string;
   videoMimeType: string;
   skeletonBase64: string | null;
+  keyFramesBase64?: string[] | null;
 }): Promise<string> {
+  if (process.env.USE_LOCAL_MLX === 'true') {
+    return localMlxChat({
+      prompt,
+      videoBase64,
+      videoMimeType,
+      skeletonBase64,
+    });
+  }
   if (process.env.OPENROUTER_API_KEY) {
     return openRouterChat({
       prompt,
       videoBase64,
       videoMimeType,
       skeletonBase64,
+      keyFramesBase64,
     });
   }
 
@@ -191,11 +266,28 @@ async function observePlay({
     });
   }
 
+  if (keyFramesBase64 && keyFramesBase64.length > 0) {
+    promptParts.push('Here are high-resolution still frames captured at the exact moments of physical contact or ball strikes to help you see the details:');
+    keyFramesBase64.forEach(img => {
+      promptParts.push({
+        inlineData: {
+          data: img,
+          mimeType: 'image/jpeg',
+        },
+      });
+    });
+  }
+
   const obsResult = await generateContentWithRetry(model, promptParts);
   return obsResult.response.text();
 }
 
 async function adjudicatePlay(prompt: string): Promise<z.infer<typeof AdjudicationSchema>> {
+  if (process.env.USE_LOCAL_MLX === 'true') {
+    const text = await localMlxChat({ prompt, json: true });
+    return AdjudicationSchema.parse(JSON.parse(extractJson(text)));
+  }
+
   if (process.env.OPENROUTER_API_KEY) {
     const text = await openRouterChat({ prompt, json: true });
     return AdjudicationSchema.parse(JSON.parse(extractJson(text)));
@@ -222,7 +314,8 @@ export async function runAnalysisPipeline(
   videoMimeType: string,
   skeletonBase64: string | null = null,
   originalCall: string | null = null,
-  cvMetadata: any = null
+  cvMetadata: any = null,
+  keyFramesBase64: string[] | null = null
 ): Promise<AnalyzeResponse> {
   const startTime = Date.now();
   
@@ -236,6 +329,7 @@ export async function runAnalysisPipeline(
     videoBase64,
     videoMimeType,
     skeletonBase64,
+    keyFramesBase64,
   });
 
   // --- STAGE 2: Adjudication ---

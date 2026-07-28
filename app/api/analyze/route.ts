@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     const sport = formData.get('sport') as string;
     const originalCall = formData.get('originalCall') as string | null;
     const videoFile = formData.get('video') as File;
+    const skeletonVideo = formData.get('skeletonVideo') as File | null;
 
     if (!sport || !videoFile) {
       return NextResponse.json(
@@ -27,6 +28,12 @@ export async function POST(req: Request) {
     let cvMetadata = null;
     let finalVideoBase64 = videoBase64;
     let skeletonBase64 = null;
+    let keyFramesBase64 = null;
+    
+    if (skeletonVideo) {
+      const skelArrayBuffer = await skeletonVideo.arrayBuffer();
+      skeletonBase64 = Buffer.from(skelArrayBuffer).toString('base64');
+    }
 
     // Call the hybrid CV service to get annotated video and telemetry
     const enableCV = process.env.ENABLE_CV_SERVICE === 'true';
@@ -50,6 +57,9 @@ export async function POST(req: Request) {
           if (cvData.skeletonBase64) {
             skeletonBase64 = cvData.skeletonBase64;
           }
+          if (cvData.keyFramesBase64) {
+            keyFramesBase64 = cvData.keyFramesBase64;
+          }
         } else {
           console.warn('CV service returned error:', cvRes.status);
         }
@@ -66,7 +76,8 @@ export async function POST(req: Request) {
       videoMimeType,
       skeletonBase64,
       originalCall || null,
-      cvMetadata
+      cvMetadata,
+      keyFramesBase64
     );
 
     if (finalVideoBase64 !== videoBase64) {

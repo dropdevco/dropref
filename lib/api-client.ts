@@ -44,6 +44,8 @@ export interface AnalyzeClipParams {
   video: File;
   sport: SportId;
   originalCall: string | null;
+  skeletonVideo?: File;
+  cvMetadata?: any;
 }
 
 /** Narrowing helper for callers. */
@@ -82,6 +84,12 @@ export async function analyzeClip(
     body.append('sport', params.sport);
     if (params.originalCall) {
       body.append('originalCall', params.originalCall);
+    }
+    if (params.skeletonVideo) {
+      body.append('skeletonVideo', params.skeletonVideo);
+    }
+    if (params.cvMetadata) {
+      body.append('cvMetadata', JSON.stringify(params.cvMetadata));
     }
 
     const res = await fetch('/api/analyze', { method: 'POST', body });
