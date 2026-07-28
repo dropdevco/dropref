@@ -5,7 +5,7 @@
 > Read this top-to-bottom before touching anything. **Update it on every
 > meaningful change** — see [How to keep this current](#how-to-keep-this-current).
 
-**Last updated:** 2026-07-23 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified (desktop + mobile) · **A11y:** ✅ swept + reviewed · **Design:** ✅ premium dark revamp
+**Last updated:** 2026-07-28 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified (desktop + mobile) · **A11y:** ✅ swept + reviewed · **Design:** ✅ premium dark revamp + WebGL mist + product tour
 
 ---
 
@@ -331,3 +331,129 @@ in the same commit.** Specifically:
   `onProgress` callback added to `cropVideoFile` (it plays the clip in real time,
   so `currentTime/duration` is honest progress) with staged labels, replacing the
   static "Setting video...". Build + typecheck green.
+- **2026-07-24** — **Duration trimming** (new feature). Users upload a whole
+  recording and drag the ends of a timeline to select the exact play; only that
+  span is encoded and sent to the AI.
+  - `components/video-trimmer.tsx` — the timeline: draggable in/out handles,
+    draggable window, playhead, live "Ns selected", dimmed unselected regions.
+    Handles are `role="slider"` with arrow-key nudging. Clamps to
+    `MIN_SELECTION_S`..`MAX_SELECTION_S`. NOTE: relative moves accumulate off a
+    `trimRef`, not render state — reading `trim` from the closure made rapid
+    key-repeat nudges overwrite each other (all computing from one stale value).
+  - `lib/video-crop.ts` — `VideoTrim`, `isFullTrim()`, and `cropVideoFile` now
+    takes an options object `{ trim, onProgress }`. It seeks to the in-point
+    before `recorder.start()` and stops capture once the playhead passes the
+    out-point (guarded by `hasOutPoint` so an unknown duration still falls back
+    to `ended`). Progress is measured across the SELECTION, not the source.
+  - `components/clip.ts` — limits restructured: `MAX_SOURCE_BYTES` 150MB and
+    `MAX_SOURCE_DURATION_S` 5min (was a flat 20MB/18s upload cap), with
+    `MAX_SELECTION_S` 18 as the analysable window. Rationale: the encoder runs in
+    real time and always downscales to 960p/30fps, so only the *selection* costs
+    time and payload — a big source only costs browser memory/scrubbing feel.
+  - `app/page.tsx` — `trim`/`sourceDuration` state; `hasEdits` now includes
+    `!isFullTrim(...)`, so anything longer than 18s must be encoded before
+    analysis (it physically cannot be sent whole). Upload/error copy updated.
+  Build + typecheck green. Trimmer UI verified in-browser (seeding, accumulation,
+  min-selection clamp, edit gating).
+- **2026-07-28** — Four features, orchestrated (3 parallel Opus workers + Opus
+  adversarial reviewer, then a fix pass). **No new dependencies** in any of them.
+  1. **WebGL mist background** — `components/mist-background.tsx`, mounted in
+     `app/layout.tsx`. Hand-rolled domain-warped fbm shader over Ashima 3D
+     simplex, two fog decks with aerial-perspective dimming, ~6.2KB gzip. Chosen
+     over `@paper-design/shaders-react` (no fog primitive, 822KB unpacked,
+     pre-1.0) and React Bits (MIT + Commons Clause — not permissive). The
+     backdrop is now three planes: `body::before` (-3) → `.mist-layer` (-2) →
+     `body::after` grid (-1), so the pitch-line grid reads as glass in FRONT of
+     the fog. 30fps cap, DPR capped 1.5, 0.55 render scale, adaptive degrade,
+     parks on `document.hidden`, static frame under `prefers-reduced-motion`,
+     silent CSS-gradient fallback with no WebGL.
+  2. **First-visit product tour** — `components/tour/{product-tour,tour-steps}.tsx`,
+     8 steps, `localStorage` key `refcheck.tour.v1` (versioned; bump to re-run
+     for everyone). Hand-rolled rather than driver.js/joyride because **no tour
+     library blurs the backdrop** — they dim with an SVG cutout. The blur is four
+     `backdrop-filter` panels tiled AROUND the target rect, so the target is
+     never behind a blurring surface. Persistent "Replay the tutorial" control.
+     ⚠️ `app/page.tsx` renders the idle screen TWICE (desktop `lg:grid` + mobile
+     `lg:hidden`), so every anchor exists twice; `resolveVisibleTarget()` scores
+     by rect area (hard `continue` on zero) with `offsetParent` only as a
+     tie-breaker — the tie-breaker matters because the replay button is
+     `position: fixed`, where `offsetParent` is always null.
+  3. **Official rulebook links on all 39 rules** — `RuleSource {url, publisher,
+     label}` in `types/contract.ts`; `SportRule.source` required,
+     `CitedRule.source` optional. Every URL fetched and verified 200; IFAB
+     anchors confirmed in served HTML; NFL anchors land on the right Rule
+     headings; NCAA is the 2025-26 PDF with per-rule `#page=`. `backend/sports.ts`
+     now **zod-validates the corpus at load** — it was a bare `JSON.parse` cast,
+     so a missing `source` produced zero tsc errors and shipped a link-less
+     citation silently. Now throws naming the exact rule.
+  4. **Video playback manipulation** — `components/video-cropper.tsx` +
+     `video-trimmer.tsx`. Grab-and-hold the stage to pause and jog-scrub, pinch
+     to scrub on touch, horizontal wheel to scrub, draggable playhead on the
+     timeline (implements the `onScrub` prop that had been declared but never
+     wired), frame stepping, 0.25×/0.5×/1× rate chips, J/K/L + arrows + Space
+     transport. Crop handles and zoom pinch are untouched when their tool is
+     active; stage gestures are inert unless `mode === 'none'`.
+
+  **Fixes from the adversarial review (all verified live):**
+  - 🔴 **The mist rendered nothing at all in dev.** `bail()` called
+    `WEBGL_lose_context.loseContext()` during StrictMode's teardown, but React
+    reuses the same `<canvas>` and `getContext()` always returns the SAME object
+    — so the remount got a dead context, shaders failed to compile, and it
+    bailed again. `bail()` also never reset `glReady`, leaving `data-gl="true"`
+    on both children, which hid the CSS fallback too. Removed `loseContext()`,
+    added `setGlReady(false)` to `bail()`, and `startLoop()` now refuses to spin
+    on a lost context.
+  - 🟠 **Tour focus trap leaked on the first Shift+Tab.** The tour opens focused
+    on the dialog container (`tabIndex={-1}`), which is `inside` but neither
+    `first` nor `last`, so the shift branch didn't fire and native traversal
+    walked backwards out of the `aria-modal` dialog onto the replay button.
+  - 🟠 **Loop guard re-armed mid-grab.** The stage is `tabIndex={0}` and
+    pointer-down focuses it, so Space during a grab hit `togglePlayback` →
+    `resumeLoopGuard()`, killing jog scrubbing and leaving a paused clip playing
+    on release. `stageKeys` now returns early while `grabRef` is live.
+  - 🟡 `href` scheme allow-list on rulebook links (`lib/api-client.ts` does no
+    runtime validation of the response body); spotlight no longer trails its
+    target during scroll (`data-tracking` suppresses the 460ms geometry easing
+    while tracking); corrected the shader's contrast comment (real worst case is
+    ~6.1:1 muted-fg, not >6.5:1 — still well clear of AA); footer contrast fixed
+    (`text-muted-foreground/70` measured 4.04:1, already under AA before mist).
+
+  **Known gaps, deliberately left:** NCAA lacrosse rule *codes* in the corpus are
+  from an older edition and no longer match the 2025-26 book (Unnecessary
+  Roughness is 5-5 not 5-11; Cross-Check 5-11 not 5-4; Offside 4-12 not 4-10) —
+  links point at the correct content, matched by subject, but the displayed codes
+  are stale. NFL deep links use React-generated `AccordionStack-N` ids that are
+  index-based and will shift if that page's component order changes (degrades to
+  the top of the correct rulebook, never a 404). Page behind the tour is not
+  `inert`/`aria-hidden` (focus trap holds; SR virtual cursor can still browse).
+  `webglcontextrestored` is unhandled, so the mist cannot recover from a real GPU
+  context loss.
+
+- **2026-07-28** — Tour steps 3-5 now teach against a real editor instead of a
+  blank screen. `components/tour/tour-demo-editor.tsx` is a non-functional
+  stand-in (stage with crop box + eight handles + scrub HUD, the **real**
+  `VideoTrimmer` driven by demo props, crop/zoom row, transport row, rate chips)
+  that `app/page.tsx` mounts in the editor's slot while the tour is on a step
+  with `needsEditorDemo`. Previously "Trim to the moment", "Work the playhead"
+  and "Reframe the play" had no anchor on a first visit — the editor does not
+  exist until a clip is loaded — so they degraded to unanchored centred cards
+  and described controls the reader could not see.
+  - Wiring: `TourStep.needsEditorDemo` → `ProductTour({ onEditorDemoChange })`
+    → `tourEditorDemo` state in `app/page.tsx`. The page owns the decision
+    because only it knows whether a real clip is loaded; with one, the real
+    `VideoCropper` is on screen and gets spotlighted instead. The two are
+    mutually exclusive, so the shared `data-tour` anchors can never collide.
+  - The demo reuses the actual `VideoTrimmer` (pure, prop-driven) rather than a
+    lookalike, so it cannot drift from the control it teaches. Passing no
+    `onScrub` is what renders its playhead inert.
+  - Inert by construction: `aria-hidden` (announcing fake buttons is worse than
+    silence — the card carries the teaching), `pointer-events-none`, and
+    `tabIndex={-1}` on every control.
+  - ⚠️ Ordering fix in `product-tour.tsx`: the demo is mounted by the page in
+    response to the tour's own effect, so its anchor lands one commit AFTER the
+    step's `measure()`. Added a `setTimeout(measure, 0)` alongside the rAF
+    follow loop — the loop would eventually catch it, but that made a correct
+    spotlight depend on winning a frame race.
+  Verified in-browser at 1280px and 375px: all 8 steps anchor correctly (03→trim,
+  04→stage, 05→crop-zoom), the demo mounts and unmounts on exactly those steps,
+  the card stays in the viewport, and nothing leaks after the tour closes.

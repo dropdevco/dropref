@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 
+import { MistBackground } from '@/components/mist-background';
+
 import './globals.css';
 
 const description =
@@ -40,7 +42,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-[100dvh] font-sans antialiased">{children}</body>
+      <body className="min-h-[100dvh] font-sans antialiased">
+        <MistBackground />
+        {children}
+      </body>
     </html>
   );
 }

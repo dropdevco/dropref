@@ -63,12 +63,20 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Fixed stadium-night backdrop: two coloured spots + faint pitch lines. */
+  /*
+    Fixed stadium-night backdrop, painted in three depth planes:
+      -3  body::before  — coloured stadium spots over the base gradient
+      -2  .mist-layer   — drifting volumetric mist (components/mist-background)
+      -1  body::after   — pitch-line grid, kept crisp in FRONT of the fog
+    All three sit behind page content. Negative z-index works here because
+    <html> has no background of its own, so body's background propagates to
+    the viewport canvas instead of painting over these layers.
+  */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: -3;
     pointer-events: none;
     background:
       radial-gradient(
@@ -96,6 +104,67 @@
     background-size: 3.25rem 3.25rem;
     mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
     -webkit-mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
+  }
+
+  /* ---- Mist plane (z = -2) --------------------------------------------
+     Peak veil opacity here and in the shader is deliberately tiny: the
+     composited backdrop stays under Y~0.010 relative luminance, which keeps
+     --muted-foreground above 6.5:1 and --foreground above 16:1 against it. */
+  .mist-layer {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    overflow: hidden;
+    contain: layout paint;
+  }
+
+  .mist-layer > * {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* CSS-only static mist. Sole layer when WebGL is missing; fades out once
+     the shader has painted its first frame. */
+  .mist-fallback {
+    opacity: 1;
+    transition: opacity 900ms ease-out;
+    background:
+      radial-gradient(
+        130% 55% at 50% 104%,
+        hsl(205 30% 62% / 0.06),
+        transparent 62%
+      ),
+      radial-gradient(
+        75% 45% at 10% 84%,
+        hsl(152 45% 50% / 0.04),
+        transparent 60%
+      ),
+      radial-gradient(
+        65% 40% at 94% 10%,
+        hsl(210 60% 55% / 0.045),
+        transparent 62%
+      ),
+      radial-gradient(
+        95% 45% at 80% 92%,
+        hsl(210 35% 60% / 0.04),
+        transparent 66%
+      );
+  }
+  .mist-fallback[data-gl='true'] {
+    opacity: 0;
+  }
+
+  .mist-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1200ms ease-out;
+  }
+  .mist-canvas[data-gl='true'] {
+    opacity: 1;
   }
 }
 
@@ -205,5 +274,78 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Product tour (components/tour/product-tour.tsx) ----------------------
+   APPENDED BLOCK — nothing above is modified, including the three backdrop
+   planes and every .mist-* rule.
+
+   `.tour-panel` is one of four disjoint fixed rectangles (above / below / left
+   / right of the highlighted target) whose union is the viewport minus that
+   target. That is the only reliable way to blur a backdrop with a hole in it:
+   `backdrop-filter` cannot be masked, because a mask hides the element's own
+   paint while the browser still blurs everything behind it. Because the target
+   is never covered by a panel, it is never behind a blurring surface, and it
+   stays perfectly sharp.
+
+   The panels animate top/left/width/height rather than transform on purpose:
+   scale() would scale the blur radius with the box (a 40px-tall panel would
+   render a squashed, streaky blur), and translate-only oversized half-planes
+   would overlap in the corners and double up both the blur and the dim. These
+   are four childless position:fixed boxes, so the geometry change is paint and
+   composite only — it triggers no document reflow. Reduced-motion users get no
+   transition at all (and the global rule above is a second backstop).
+--------------------------------------------------------------------------- */
+.tour-panel {
+  position: fixed;
+  background-color: hsl(var(--background) / 0.6);
+  backdrop-filter: blur(7px) saturate(115%);
+  -webkit-backdrop-filter: blur(7px) saturate(115%);
+}
+
+.tour-ring {
+  position: fixed;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1.5px hsl(var(--primary) / 0.85),
+    0 0 0 6px hsl(var(--primary) / 0.14),
+    0 0 34px 4px hsl(var(--primary) / 0.3);
+}
+
+@keyframes tour-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tour-panel,
+  .tour-ring {
+    transition:
+      top 460ms cubic-bezier(0.32, 0.72, 0, 1),
+      left 460ms cubic-bezier(0.32, 0.72, 0, 1),
+      width 460ms cubic-bezier(0.32, 0.72, 0, 1),
+      height 460ms cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 220ms ease-out;
+  }
+
+  /* While the spotlight is chasing a scrolling/resizing target, kill the
+     geometry easing: a 460ms ease makes the hole trail the element, which
+     briefly parks the one thing that must never be blurred behind a blur
+     panel. Step-to-step travel keeps its animation. Opacity still eases, so
+     nothing pops. */
+  [data-tracking='true'] .tour-panel,
+  [data-tracking='true'] .tour-ring {
+    transition: opacity 220ms ease-out;
+  }
+
+  .tour-card-in {
+    animation: tour-card-in 280ms cubic-bezier(0.32, 0.72, 0, 1) both;
   }
 }

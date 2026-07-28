@@ -8,12 +8,22 @@
     {
       "code": "LOTG-11.1",
       "title": "Offside position",
-      "text": "A player is in an offside position if any part of the head, body or feet is in the opponents' half and closer to the opponents' goal line than both the ball and the second-to-last opponent."
+      "text": "A player is in an offside position if any part of the head, body or feet is in the opponents' half and closer to the opponents' goal line than both the ball and the second-to-last opponent.",
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-position",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.1: Offside position"
+      }
     },
     {
       "code": "LOTG-11.3",
       "title": "Offside offence — involvement",
-      "text": "A player in an offside position is penalised only if, at the moment the ball is played by a teammate, they become involved in active play by interfering with play, interfering with an opponent, or gaining an advantage."
+      "text": "A player in an offside position is penalised only if, at the moment the ball is played by a teammate, they become involved in active play by interfering with play, interfering with an opponent, or gaining an advantage.",
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-offence",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.2: Offside offence"
+      }
     }
   ],
   "originalCall": "Offside — goal disallowed",

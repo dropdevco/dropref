@@ -2,10 +2,20 @@ export type SportId = 'soccer' | 'football' | 'lacrosse';
 export type Verdict = 'FAIR_CALL' | 'BAD_CALL' | 'INCONCLUSIVE';
 export type Confidence = 'HIGH' | 'MEDIUM' | 'LOW';
 
+export interface RuleSource {
+  /** Deep link to the official rulebook passage. Must be a real, verified URL. */
+  url: string;
+  /** Publisher shorthand, e.g. 'IFAB' | 'NFL' | 'NCAA'. */
+  publisher: string;
+  /** Human-readable citation, e.g. 'IFAB Laws of the Game — Law 11: Offside'. */
+  label: string;
+}
+
 export interface CitedRule {
   code: string;
   title: string;
   text: string;
+  source?: RuleSource;
 }
 
 export interface AnalyzeResponse {
@@ -36,6 +46,7 @@ export interface SportRule {
   keywords: string[];
   callTypes: string[];
   needsVerification?: boolean;
+  source: RuleSource;
 }
 
 export interface SportCorpus {

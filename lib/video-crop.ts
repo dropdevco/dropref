@@ -11,6 +11,22 @@ export interface VideoMeta {
   duration: number;
 }
 
+/** An in/out point pair, in seconds, selecting part of the source timeline. */
+export interface VideoTrim {
+  start: number;
+  end: number;
+}
+
+/** True when the trim still covers the whole clip (nothing to cut). */
+export function isFullTrim(trim: VideoTrim | null, duration: number): boolean {
+  if (!trim) return true;
+  const EPS = 0.05;
+  return (
+    trim.start <= EPS &&
+    (!Number.isFinite(duration) || trim.end >= duration - EPS)
+  );
+}
+
 /**
  * The untouched, full-frame crop. A freshly added clip must start here so the
  * editor shows the video exactly as uploaded — no crop is "pre-applied".
@@ -146,8 +162,13 @@ function recordingMimeType(): string {
 export async function cropVideoFile(
   file: File,
   crop: VideoCrop,
-  onProgress?: (ratio: number) => void,
+  options: {
+    /** In/out points in seconds. Omit (or null) to encode the whole clip. */
+    trim?: VideoTrim | null;
+    onProgress?: (ratio: number) => void;
+  } = {},
 ): Promise<File> {
+  const { trim = null, onProgress } = options;
   if (typeof MediaRecorder === 'undefined') {
     throw new Error('Video cropping is not supported in this browser.');
   }
@@ -190,32 +211,60 @@ export async function cropVideoFile(
       };
     });
 
-    let raf = 0;
-    const draw = () => {
-      drawCroppedVideoFrame(video, canvas, safeCrop);
-      if (onProgress && Number.isFinite(video.duration) && video.duration > 0) {
-        onProgress(Math.min(video.currentTime / video.duration, 1));
-      }
-      if (!video.ended) {
-        raf = requestAnimationFrame(draw);
-      }
-    };
+    // Resolve the segment to capture. Without a trim this is the whole clip,
+    // so behaviour is unchanged for untrimmed videos.
+    const duration = Number.isFinite(video.duration) ? video.duration : 0;
+    const startAt = trim ? Math.max(0, Math.min(trim.start, duration)) : 0;
+    const endAt =
+      trim && trim.end > startAt ? Math.min(trim.end, duration || trim.end) : duration;
+    const span = Math.max(endAt - startAt, 0.01);
 
-    if (video.currentTime !== 0) {
+    // Seek to the in-point BEFORE recording starts, so the first captured
+    // frame is the start of the selection.
+    if (Math.abs(video.currentTime - startAt) > 0.01) {
       await new Promise<void>((resolve, reject) => {
         video.onseeked = () => resolve();
         video.onerror = () => reject(new Error('Could not seek video.'));
-        video.currentTime = 0;
+        video.currentTime = startAt;
       });
     }
 
-    recorder.start(250);
-    draw();
-    await video.play();
-
-    await new Promise<void>((resolve) => {
-      video.onended = () => resolve();
+    let raf = 0;
+    let settled = false;
+    let resolveFinished: () => void;
+    const finished = new Promise<void>((resolve) => {
+      resolveFinished = resolve;
     });
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      video.pause();
+      resolveFinished();
+    };
+    video.onended = done;
+
+    // The out-point is enforced here: capture stops mid-clip once the playhead
+    // passes `endAt`, so only the selected segment is recorded. `hasOutPoint`
+    // guards the case where duration is unknown (0) — then we rely on `ended`.
+    const hasOutPoint = endAt > startAt + 0.01;
+    const tick = () => {
+      drawCroppedVideoFrame(video, canvas, safeCrop);
+      onProgress?.(Math.min(Math.max((video.currentTime - startAt) / span, 0), 1));
+      if (hasOutPoint && video.currentTime >= endAt - 0.02) {
+        done();
+        return;
+      }
+      if (video.ended) {
+        done();
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+
+    recorder.start(250);
+    raf = requestAnimationFrame(tick);
+    await video.play();
+    await finished;
 
     cancelAnimationFrame(raf);
     drawCroppedVideoFrame(video, canvas, safeCrop);

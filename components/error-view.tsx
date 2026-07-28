@@ -21,7 +21,7 @@ const ERROR_COPY: Record<
   FILE_TOO_LARGE: {
     Icon: Weight,
     title: 'That clip is too big',
-    body: 'Clips need to be 20MB or smaller. Trim it down or export at a lower resolution and try again.',
+    body: 'That video is over the 150MB limit. Export it smaller, or upload a shorter recording and trim it to the play.',
   },
   BAD_FORMAT: {
     Icon: FileVideo,

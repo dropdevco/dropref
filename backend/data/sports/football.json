@@ -28,7 +28,12 @@
       "callTypes": [
         "catch",
         "incomplete"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-11",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 8: Forward Pass, Backward Pass, Fumble"
+      }
     },
     {
       "code": "Rule 8, Section 1, Article 4",
@@ -44,7 +49,12 @@
       ],
       "callTypes": [
         "incomplete"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-11",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 8: Forward Pass, Backward Pass, Fumble"
+      }
     },
     {
       "code": "Rule 8, Section 5, Article 2",
@@ -60,7 +70,12 @@
       ],
       "callTypes": [
         "pass interference"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-11",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 8: Forward Pass, Backward Pass, Fumble"
+      }
     },
     {
       "code": "Rule 8, Section 5, Article 2 (Restrictions)",
@@ -76,7 +91,12 @@
       ],
       "callTypes": [
         "pass interference"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-11",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 8: Forward Pass, Backward Pass, Fumble"
+      }
     },
     {
       "code": "Rule 8, Section 5, Article 3",
@@ -90,7 +110,12 @@
       ],
       "callTypes": [
         "pass interference"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-11",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 8: Forward Pass, Backward Pass, Fumble"
+      }
     },
     {
       "code": "Rule 12, Section 1, Article 3",
@@ -107,7 +132,12 @@
       ],
       "callTypes": [
         "holding"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-15",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 12: Player Conduct"
+      }
     },
     {
       "code": "Rule 12, Section 1, Article 6",
@@ -123,7 +153,12 @@
       ],
       "callTypes": [
         "holding"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-15",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 12: Player Conduct"
+      }
     },
     {
       "code": "Rule 12, Section 2, Article 9",
@@ -140,7 +175,12 @@
       ],
       "callTypes": [
         "targeting"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-15",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 12: Player Conduct"
+      }
     },
     {
       "code": "Rule 12, Section 2, Article 9 (Defenseless Player)",
@@ -155,7 +195,12 @@
       ],
       "callTypes": [
         "targeting"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-15",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 12: Player Conduct"
+      }
     },
     {
       "code": "Rule 8, Section 2, Article 1",
@@ -171,7 +216,12 @@
       ],
       "callTypes": [
         "incomplete"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-11",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 8: Forward Pass, Backward Pass, Fumble"
+      }
     },
     {
       "code": "Rule 12, Section 2, Article 12",
@@ -187,7 +237,12 @@
       ],
       "callTypes": [
         "targeting"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-15",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 12: Player Conduct"
+      }
     },
     {
       "code": "Rule 11, Section 3, Article 1",
@@ -202,7 +257,12 @@
       ],
       "callTypes": [
         "catch"
-      ]
+      ],
+      "source": {
+        "url": "https://operations.nfl.com/the-rules/nfl-rulebook/#headline-headline-AccordionStack-14",
+        "publisher": "NFL",
+        "label": "NFL Official Playing Rules — Rule 11: Scoring"
+      }
     }
   ]
 }
