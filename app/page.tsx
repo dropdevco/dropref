@@ -21,11 +21,13 @@ import {
   DEFAULT_VIDEO_CROP,
   cropVideoFile,
   isDefaultCrop,
+  isFullTrim,
   type VideoCrop,
+  type VideoTrim,
 } from '@/lib/video-crop';
 import {
-  DURATION_METADATA_TOLERANCE_S,
-  MAX_DURATION_S,
+  MAX_SELECTION_S,
+  MAX_SOURCE_DURATION_S,
   checkFileMeta,
   readVideoDuration,
 } from '@/components/clip';
@@ -39,6 +41,8 @@ import { VideoCropper } from '@/components/video-cropper';
 import { AnalyzingState } from '@/components/analyzing-state';
 import { ResultView } from '@/components/result-view';
 import { ErrorView } from '@/components/error-view';
+import { ProductTour } from '@/components/tour/product-tour';
+import { TourDemoEditor } from '@/components/tour/tour-demo-editor';
 
 type Phase = 'idle' | 'analyzing' | 'result' | 'error';
 
@@ -72,6 +76,8 @@ export default function Home() {
     null,
   );
   const [crop, setCrop] = useState<VideoCrop>(DEFAULT_VIDEO_CROP);
+  const [trim, setTrim] = useState<VideoTrim | null>(null);
+  const [sourceDuration, setSourceDuration] = useState(0);
   const [sport, setSport] = useState<SportId | null>(null);
   const [originalCall, setOriginalCall] = useState('');
   const [rejection, setRejection] = useState<string | null>(null);
@@ -80,6 +86,10 @@ export default function Home() {
   const [setProgress, setSetProgress] = useState(0);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<AnalyzeError | null>(null);
+  // Set by the product tour while it is on a step that explains the clip
+  // editor. Only has an effect when no clip is loaded — with a real clip the
+  // real editor is already on screen and is what gets spotlighted.
+  const [tourEditorDemo, setTourEditorDemo] = useState(false);
 
   // Move keyboard/screen-reader focus to the active view when the phase
   // changes, so a state swap doesn't strand focus on a button that's gone.
@@ -122,6 +132,14 @@ export default function Home() {
     [clearPreparedVideo],
   );
 
+  const updateTrim = useCallback(
+    (nextTrim: VideoTrim) => {
+      setTrim(nextTrim);
+      clearPreparedVideo();
+    },
+    [clearPreparedVideo],
+  );
+
   const acceptFile = useCallback(
     async (candidate: File) => {
       setRejection(null);
@@ -135,16 +153,20 @@ export default function Home() {
       const url = URL.createObjectURL(candidate);
       try {
         const duration = await readVideoDuration(url);
-        if (duration > MAX_DURATION_S + DURATION_METADATA_TOLERANCE_S) {
+        if (duration > MAX_SOURCE_DURATION_S) {
           URL.revokeObjectURL(url);
+          const mins = Math.round(MAX_SOURCE_DURATION_S / 60);
           setRejection(
-            `Clip is ${duration.toFixed(2)}s. Keep it to ${MAX_DURATION_S}s or less.`,
+            `Video is ${Math.round(duration)}s. Keep it under ${mins} minutes.`,
           );
           return;
         }
         setFile(candidate);
         setPreparedFile(null);
         setCrop(DEFAULT_VIDEO_CROP);
+        setSourceDuration(duration);
+        // Seed the selection to the analysable window; the trimmer refines it.
+        setTrim({ start: 0, end: Math.min(duration, MAX_SELECTION_S) });
         setPreview(url);
         setSubmittedPreview(null);
       } catch {
@@ -166,7 +188,10 @@ export default function Home() {
     clearPreparedVideo();
 
     try {
-      const videoForAnalysis = await cropVideoFile(file, crop, setSetProgress);
+      const videoForAnalysis = await cropVideoFile(file, crop, {
+        trim,
+        onProgress: setSetProgress,
+      });
       setPreparedFile(videoForAnalysis);
       setSubmittedPreview(URL.createObjectURL(videoForAnalysis));
     } catch {
@@ -174,7 +199,7 @@ export default function Home() {
     } finally {
       setSettingVideo(false);
     }
-  }, [clearPreparedVideo, crop, file, setSubmittedPreview]);
+  }, [clearPreparedVideo, crop, file, setSubmittedPreview, trim]);
 
   const onAnalyze = useCallback(async () => {
     let videoToAnalyze = preparedFile ?? file;
@@ -191,12 +216,12 @@ export default function Home() {
     setPhase('analyzing');
 
     // An unedited clip skips the crop step, which is also the only place the
-    // video gets downscaled. Raw uploads (up to 20MB) are base64-inflated by
+    // video gets downscaled. Raw uploads are base64-inflated by
     // ~1.37x server-side and would blow the model's inline-payload limit, so
     // transcode oversized clips transparently — no extra click for the user.
     if (!preparedFile && videoToAnalyze.size > MAX_DIRECT_UPLOAD_BYTES) {
       try {
-        videoToAnalyze = await cropVideoFile(videoToAnalyze, crop);
+        videoToAnalyze = await cropVideoFile(videoToAnalyze, crop, { trim });
       } catch {
         // Fall through with the original file; the API surfaces any failure.
       }
@@ -215,7 +240,7 @@ export default function Home() {
       setPhase('result');
     }
     setBusy(false);
-  }, [crop, file, originalCall, preparedFile, sport]);
+  }, [crop, file, originalCall, preparedFile, sport, trim]);
 
   const reset = useCallback(() => {
     setPreview(null);
@@ -223,6 +248,8 @@ export default function Home() {
     setFile(null);
     setPreparedFile(null);
     setCrop(DEFAULT_VIDEO_CROP);
+    setTrim(null);
+    setSourceDuration(0);
     setSport(null);
     setOriginalCall('');
     setRejection(null);
@@ -231,7 +258,9 @@ export default function Home() {
     setPhase('idle');
   }, [setPreview, setSubmittedPreview]);
 
-  const hasEdits = !isDefaultCrop(crop);
+  // A trim counts as an edit: anything longer than the analysable window can
+  // only be sent after the selection is encoded.
+  const hasEdits = !isDefaultCrop(crop) || !isFullTrim(trim, sourceDuration);
   const canAnalyze =
     Boolean(file && sport && (!hasEdits || preparedFile)) &&
     !busy &&
@@ -294,6 +323,8 @@ export default function Home() {
                                 src={previewUrl}
                                 crop={crop}
                                 onCropChange={updateCrop}
+                        trim={trim}
+                        onTrimChange={updateTrim}
                               />
                             </div>
                             <button
@@ -310,6 +341,8 @@ export default function Home() {
                               Choose a different clip
                             </button>
                           </div>
+                        ) : tourEditorDemo ? (
+                          <TourDemoEditor className="flex-1" />
                         ) : (
                           <UploadZone
                             onPick={acceptFile}
@@ -409,6 +442,7 @@ export default function Home() {
                   <Button
                     onClick={onAnalyze}
                     disabled={!canAnalyze}
+                    data-tour="analyze"
                     size="lg"
                     className="h-12 w-full text-base"
                   >
@@ -445,6 +479,8 @@ export default function Home() {
                             src={previewUrl}
                             crop={crop}
                             onCropChange={updateCrop}
+                        trim={trim}
+                        onTrimChange={updateTrim}
                           />
                         </div>
                         <button
@@ -461,6 +497,8 @@ export default function Home() {
                           Choose a different clip
                         </button>
                       </div>
+                    ) : tourEditorDemo ? (
+                      <TourDemoEditor />
                     ) : (
                       <UploadZone onPick={acceptFile} busy={busy} />
                     )}
@@ -535,6 +573,7 @@ export default function Home() {
                     <Button
                       onClick={onAnalyze}
                       disabled={!canAnalyze}
+                      data-tour="analyze"
                       size="lg"
                       className="w-full"
                     >
@@ -572,10 +611,18 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="mt-8 text-center text-[11px] text-muted-foreground/70">
+      {/* Full-strength muted, not /70: at 11px the dimmed variant measured
+          4.04:1 on the bare background — already under AA — and the mist layer
+          costs it another ~0.2. Full strength lands at ~6.4:1 even over mist. */}
+      <footer className="mt-8 text-center text-[11px] text-muted-foreground">
         RefCheck AI · every call cited against the official rulebook — IFAB Laws
         of the Game, NFL Rulebook &amp; NCAA Men&apos;s Lacrosse Rules.
       </footer>
+
+      {/* First-visit walkthrough. Renders nothing until it has mounted and
+          checked localStorage, so it can never cause a hydration mismatch; it
+          also owns the always-available "Replay the tutorial" control. */}
+      <ProductTour onEditorDemoChange={setTourEditorDemo} />
     </main>
   );
 }

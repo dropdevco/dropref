@@ -27,6 +27,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { SportSelector } from '@/components/sport-selector';
+import { RuleSourceLink } from '@/components/result-view';
 import { VerdictBadge } from '@/components/verdict-badge';
 import { ConfidenceMeter } from '@/components/confidence-meter';
 
@@ -460,6 +461,7 @@ export default function RulebookLab() {
                               </span>
                             </div>
                             <RuleText text={rule.text} />
+                            <RuleSourceLink rule={rule} />
                           </li>
                         ))}
                       </ul>
@@ -531,6 +533,7 @@ export default function RulebookLab() {
                                   </span>
                                 </div>
                                 <RuleText text={rule.text} />
+                                <RuleSourceLink rule={rule} />
                                 {rule.keywords?.length > 0 && (
                                   <div className="mt-2.5 flex flex-wrap gap-1.5">
                                     {rule.keywords.map((kw) => {

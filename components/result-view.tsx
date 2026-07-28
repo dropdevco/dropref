@@ -1,6 +1,13 @@
 'use client';
 
-import { Eye, Flag, RotateCcw, Scale, ScrollText } from 'lucide-react';
+import {
+  ExternalLink,
+  Eye,
+  Flag,
+  RotateCcw,
+  Scale,
+  ScrollText,
+} from 'lucide-react';
 
 import { ConfidenceMeter, CONFIDENCE_LABEL } from '@/components/confidence-meter';
 import {
@@ -11,7 +18,54 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { VerdictBadge, VERDICT_LABEL } from '@/components/verdict-badge';
-import type { AnalyzeResponse } from '@/types/contract';
+import type { AnalyzeResponse, CitedRule } from '@/types/contract';
+
+/**
+ * Link out to the official rulebook passage a cited rule comes from. Renders
+ * nothing when the payload carries no source, so legacy responses never show a
+ * dangling link.
+ */
+/**
+ * Only ever emit an http(s) `href`. The corpus is repo-controlled and validated
+ * at load, but `lib/api-client.ts` does no runtime validation of the response
+ * body — so a compromised or misbehaving backend is the one path that could put
+ * a `javascript:` URL in front of a user. Cheap to close, so close it.
+ */
+function safeHttpUrl(raw: string | undefined): string | null {
+  if (!raw) return null;
+  try {
+    // No base URL on purpose: rulebook sources are absolute by definition, and
+    // omitting it keeps this safe to evaluate during server prerender, where
+    // `window` does not exist. A relative value throws and is rejected.
+    const parsed = new URL(raw);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+      ? parsed.href
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export function RuleSourceLink({ rule }: { rule: CitedRule }) {
+  const href = safeHttpUrl(rule.source?.url);
+  if (!rule.source || !href) return null;
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`Read ${rule.code} on the official ${rule.source.publisher} rulebook (opens in a new tab)`}
+      className="mt-2 inline-flex items-center gap-1.5 rounded text-xs font-medium text-primary underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
+      <ExternalLink className="h-3 w-3 shrink-0" strokeWidth={1.5} aria-hidden />
+      <span>Read the official rule</span>
+      <span className="font-normal text-muted-foreground">
+        · {rule.source.label}
+      </span>
+    </a>
+  );
+}
 
 function Section({
   icon: Icon,
@@ -146,6 +200,7 @@ export function ResultView({
                       <p className="mt-1 text-sm leading-relaxed text-foreground/70">
                         {rule.text}
                       </p>
+                      <RuleSourceLink rule={rule} />
                     </li>
                   ))}
                 </ul>

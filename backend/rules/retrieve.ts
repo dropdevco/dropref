@@ -42,6 +42,7 @@ export function retrieveRules(
       code: r.code,
       title: r.title,
       text: r.text,
+      source: r.source,
     }));
   }
 
@@ -83,6 +84,7 @@ export function retrieveRules(
       code: e.rule.code,
       title: e.rule.title,
       text: e.rule.text,
+      source: e.rule.source,
     }));
 }
 

@@ -286,7 +286,12 @@ function citeRules(codes: string[], candidates: SportRule[]): CitedRule[] {
   return codes
     .map((c) => byCode.get(c))
     .filter((r): r is SportRule => Boolean(r))
-    .map((r) => ({ code: r.code, title: r.title, text: r.text }));
+    .map((r) => ({
+      code: r.code,
+      title: r.title,
+      text: r.text,
+      source: r.source,
+    }));
 }
 
 /** Run the lab adjudication. Verdict mode if a call was given, else ruling mode. */

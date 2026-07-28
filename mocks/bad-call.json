@@ -8,12 +8,22 @@
     {
       "code": "LOTG-11.1",
       "title": "Offside position",
-      "text": "A player is in an offside position if any part of the head, body or feet is in the opponents' half and closer to the opponents' goal line than both the ball and the second-to-last opponent. A player level with the second-to-last opponent or level with the last two opponents is not offside."
+      "text": "A player is in an offside position if any part of the head, body or feet is in the opponents' half and closer to the opponents' goal line than both the ball and the second-to-last opponent. A player level with the second-to-last opponent or level with the last two opponents is not offside.",
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-position",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.1: Offside position"
+      }
     },
     {
       "code": "LOTG-11.2",
       "title": "Offside offence — moment of judgement",
-      "text": "The offside position is assessed at the moment the ball is played or touched by a teammate, not at the moment the ball is received."
+      "text": "The offside position is assessed at the moment the ball is played or touched by a teammate, not at the moment the ball is received.",
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-offence",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.2: Offside offence"
+      }
     }
   ],
   "originalCall": "Offside — goal disallowed",

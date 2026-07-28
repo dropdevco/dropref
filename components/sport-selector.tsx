@@ -54,7 +54,7 @@ export function SportSelector({
   const count = SPORTS.length;
 
   return (
-    <div>
+    <div data-tour="sport">
       <span id="sport-selector-label" className="eyebrow mb-2.5 block">
         Choose the sport
       </span>

@@ -29,7 +29,12 @@
       ],
       "callTypes": [
         "offside"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-position",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.1: Offside position"
+      }
     },
     {
       "code": "Law 11.2",
@@ -45,7 +50,12 @@
       ],
       "callTypes": [
         "offside"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-offence",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.2: Offside offence"
+      }
     },
     {
       "code": "Law 12.1 (Fair Tackle)",
@@ -61,7 +71,12 @@
       "callTypes": [
         "foul",
         "no foul"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.1 (Careless)",
@@ -87,7 +102,12 @@
       "callTypes": [
         "foul",
         "penalty"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.1 (Reckless)",
@@ -110,7 +130,12 @@
         "foul",
         "penalty",
         "yellow card"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.1 (Excessive Force)",
@@ -127,7 +152,12 @@
         "foul",
         "penalty",
         "red card"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.1",
@@ -143,7 +173,12 @@
       ],
       "callTypes": [
         "handball"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.1",
@@ -158,7 +193,12 @@
       ],
       "callTypes": [
         "handball"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.1",
@@ -174,7 +214,12 @@
       ],
       "callTypes": [
         "handball"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.3",
@@ -190,7 +235,12 @@
       ],
       "callTypes": [
         "dive"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#disciplinary-action",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12: Fouls and Misconduct, Disciplinary action"
+      }
     },
     {
       "code": "Law 14.1",
@@ -205,7 +255,12 @@
       ],
       "callTypes": [
         "penalty"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/the-penalty-kick/",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 14: The Penalty Kick"
+      }
     },
     {
       "code": "Law 12.1",
@@ -221,7 +276,12 @@
       "callTypes": [
         "foul",
         "penalty"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.1",
@@ -237,7 +297,12 @@
       "callTypes": [
         "foul",
         "penalty"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#direct-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.1: Direct free kick"
+      }
     },
     {
       "code": "Law 12.2",
@@ -252,7 +317,12 @@
       ],
       "callTypes": [
         "foul"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/fouls-and-misconduct/#indirect-free-kick",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 12.2: Indirect free kick"
+      }
     },
     {
       "code": "Law 11.2",
@@ -267,7 +337,12 @@
       ],
       "callTypes": [
         "offside"
-      ]
+      ],
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-offence",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.2: Offside offence"
+      }
     }
   ]
 }

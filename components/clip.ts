@@ -1,11 +1,25 @@
 /**
  * OWNER: Dev A (frontend).
- * Client-side clip validation — kept in lockstep with the server route
- * (20MB cap) plus a UI-only 18-second duration cap.
+ * Client-side clip validation.
+ *
+ * Users upload a whole recording and trim it down to the moment, so the SOURCE
+ * limits are generous while the analysed SELECTION stays short. Only the trimmed
+ * selection is ever encoded and uploaded (downscaled to 960px/30fps by
+ * `lib/video-crop.ts`), so a large source never reaches the server or the model
+ * — it only costs browser memory and scrubbing responsiveness.
  */
 
-export const MAX_BYTES = 20 * 1024 * 1024; // 20MB — matches the API route
-export const MAX_DURATION_S = 18; // UI-only guard
+/** Source file cap — comfortably fits a couple of minutes of 1080p phone video. */
+export const MAX_SOURCE_BYTES = 150 * 1024 * 1024; // 150MB
+/** Source duration cap — long enough to upload a full passage of play. */
+export const MAX_SOURCE_DURATION_S = 300; // 5 minutes
+/**
+ * Longest selection that can be sent for analysis. The encoder records in real
+ * time, so this also bounds how long "Set this video" takes.
+ */
+export const MAX_SELECTION_S = 18;
+/** Shortest selection worth analysing. */
+export const MIN_SELECTION_S = 1;
 export const DURATION_METADATA_TOLERANCE_S = 0.25;
 
 /** Accepted container/MIME types: mp4, mov, webm. */
@@ -25,11 +39,22 @@ export function checkFileMeta(file: File): ClipCheck {
   if (!typeOk) {
     return { ok: false, reason: 'Unsupported format. Use MP4, MOV, or WebM.' };
   }
-  if (file.size > MAX_BYTES) {
-    const mb = (file.size / (1024 * 1024)).toFixed(1);
-    return { ok: false, reason: `Clip is ${mb}MB. Max is 20MB.` };
+  if (file.size > MAX_SOURCE_BYTES) {
+    const mb = (file.size / (1024 * 1024)).toFixed(0);
+    const maxMb = MAX_SOURCE_BYTES / (1024 * 1024);
+    return { ok: false, reason: `Video is ${mb}MB. Max is ${maxMb}MB.` };
   }
   return { ok: true };
+}
+
+/** Human-readable m:ss for timeline labels. */
+export function formatClock(seconds: number): string {
+  const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
+  const mins = Math.floor(safe / 60);
+  const secs = Math.floor(safe % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${mins}:${secs}`;
 }
 
 /**
