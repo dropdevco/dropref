@@ -300,3 +300,34 @@ in the same commit.** Specifically:
   to a video-capable model. Default is `google/gemini-2.5-flash`; Gemini SDK is
   only the fallback when `OPENROUTER_API_KEY` is absent. `.env.example` was
   updated to make OpenRouter the primary setup path.
+- **2026-07-24** — Video-editor UX fixes (orchestrated: 2 Sonnet workers + Opus
+  adversarial review). (1) Clip now autoplays instead of showing a black frame;
+  (2) crop/zoom UI only appears after the user activates a tool (`EditMode` gained
+  a `'none'` default); (3) "Set video" is only required when crop/zoom actually
+  changed — `DEFAULT_VIDEO_CROP` is now the full frame and `isDefaultCrop()` gates
+  it, unedited clips analyze the original file; (4) removed the
+  "Soccer · Football · Lacrosse" eyebrow (both mobile + desktop layouts);
+  (5) zoom-out root cause fixed — the canvas preview (`drawCropEditorFrame`) and
+  its `strokeRect` were deleted, so the crop border is now a single DOM overlay in
+  one coordinate space instead of two disagreeing ones; the real `<video>` is the
+  paint surface.
+  Opus review caught a regression worth remembering: **skipping the crop step also
+  skips the only downscale**, so `onAnalyze` now transcodes clips over
+  `MAX_DIRECT_UPLOAD_BYTES` (8MB) transparently — the server base64-inflates
+  uploads ~1.37x and the model rejects oversized inline payloads.
+  Build + typecheck green. Autoplay could not be visually confirmed (the browser
+  pane wasn't compositing, so Chrome suppressed playback); verified by DOM state.
+- **2026-07-24** — UI polish round: (a) removed the focus ring from the stage
+  `<section>` — it is `tabIndex={-1}` and React StrictMode's double-fired mount
+  effect focused it on load, painting a green frame around the whole page;
+  (b) footer now credits the real corpora (IFAB / NFL / NCAA Men's Lacrosse)
+  instead of disclaiming official rulings; (c) new **referee mark** — the user's
+  line-art PNG recoloured to the palette via PIL into `public/referee.png`
+  (light lines) and `app/icon.png` (navy rounded square + green ring favicon,
+  replacing `app/icon.svg`), surfaced through `components/referee-mark.tsx` in
+  the header and the two static whistle slots (the *animated* whistle stays in
+  the analyzing state); (d) "Set this video" now shows
+  `components/set-video-progress.tsx` — a DETERMINATE bar driven by a real
+  `onProgress` callback added to `cropVideoFile` (it plays the clip in real time,
+  so `currentTime/duration` is honest progress) with staged labels, replacing the
+  static "Setting video...". Build + typecheck green.

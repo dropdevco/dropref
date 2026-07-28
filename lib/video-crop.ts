@@ -11,12 +11,31 @@ export interface VideoMeta {
   duration: number;
 }
 
+/**
+ * The untouched, full-frame crop. A freshly added clip must start here so the
+ * editor shows the video exactly as uploaded — no crop is "pre-applied".
+ */
 export const DEFAULT_VIDEO_CROP: VideoCrop = {
-  x: 0.08,
-  y: 0.08,
-  width: 0.84,
-  height: 0.84,
+  x: 0,
+  y: 0,
+  width: 1,
+  height: 1,
 };
+
+/**
+ * True when the crop is still the untouched full frame, i.e. the user has not
+ * changed zoom or crop. Callers use this to skip re-encoding and analyze the
+ * original file directly.
+ */
+export function isDefaultCrop(crop: VideoCrop): boolean {
+  const EPS = 1e-4;
+  return (
+    Math.abs(crop.x - DEFAULT_VIDEO_CROP.x) < EPS &&
+    Math.abs(crop.y - DEFAULT_VIDEO_CROP.y) < EPS &&
+    Math.abs(crop.width - DEFAULT_VIDEO_CROP.width) < EPS &&
+    Math.abs(crop.height - DEFAULT_VIDEO_CROP.height) < EPS
+  );
+}
 
 const OUTPUT_LONG_EDGE = 960;
 const FRAME_RATE = 30;
@@ -71,40 +90,6 @@ export function outputSize(
   };
 }
 
-export function drawCropEditorFrame(
-  video: HTMLVideoElement,
-  canvas: HTMLCanvasElement,
-  crop: VideoCrop,
-) {
-  const meta = {
-    width: video.videoWidth,
-    height: video.videoHeight,
-  };
-  if (!meta.width || !meta.height) return;
-
-  if (canvas.width !== meta.width || canvas.height !== meta.height) {
-    canvas.width = meta.width;
-    canvas.height = meta.height;
-  }
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const rect = sourceCropRect(meta, crop);
-
-  ctx.save();
-  ctx.fillStyle = 'rgb(0 0 0 / 0.52)';
-  ctx.fillRect(0, 0, canvas.width, rect.y);
-  ctx.fillRect(0, rect.y + rect.height, canvas.width, canvas.height);
-  ctx.fillRect(0, rect.y, rect.x, rect.height);
-  ctx.fillRect(rect.x + rect.width, rect.y, canvas.width, rect.height);
-  ctx.strokeStyle = 'rgb(34 197 94)';
-  ctx.lineWidth = Math.max(3, canvas.width * 0.003);
-  ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-  ctx.restore();
-}
-
 export function drawCroppedVideoFrame(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
@@ -151,9 +136,17 @@ function recordingMimeType(): string {
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? '';
 }
 
+/**
+ * Re-encode `file` to just the cropped region.
+ *
+ * The clip is played back in real time to capture it, so `onProgress` reports
+ * genuine completion (0 → 1) rather than an indeterminate spinner — the UI uses
+ * it to show an honest progress bar.
+ */
 export async function cropVideoFile(
   file: File,
   crop: VideoCrop,
+  onProgress?: (ratio: number) => void,
 ): Promise<File> {
   if (typeof MediaRecorder === 'undefined') {
     throw new Error('Video cropping is not supported in this browser.');
@@ -200,6 +193,9 @@ export async function cropVideoFile(
     let raf = 0;
     const draw = () => {
       drawCroppedVideoFrame(video, canvas, safeCrop);
+      if (onProgress && Number.isFinite(video.duration) && video.duration > 0) {
+        onProgress(Math.min(video.currentTime / video.duration, 1));
+      }
       if (!video.ended) {
         raf = requestAnimationFrame(draw);
       }
@@ -223,6 +219,7 @@ export async function cropVideoFile(
 
     cancelAnimationFrame(raf);
     drawCroppedVideoFrame(video, canvas, safeCrop);
+    onProgress?.(1);
     if (recorder.state !== 'inactive') recorder.stop();
 
     const blob = await stopped;

@@ -8,18 +8,16 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
 } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
   DEFAULT_VIDEO_CROP,
-  drawCropEditorFrame,
   type VideoCrop,
   type VideoMeta,
 } from '@/lib/video-crop';
 
-type EditMode = 'crop' | 'zoom';
+type EditMode = 'none' | 'crop' | 'zoom';
 type DragMode =
   | 'move'
   | 'n'
@@ -144,6 +142,9 @@ function zoomCrop(crop: VideoCrop, scale: number): VideoCrop {
   const start = safeCrop(crop);
   const centerX = start.x + start.width / 2;
   const centerY = start.y + start.height / 2;
+  // Clamp to [MIN_CROP, 1] explicitly: zooming out must never grow the crop
+  // rect past the full frame (width/height of 1), and zooming in must never
+  // shrink it past the minimum crop size.
   const width = clamp(start.width / scale, MIN_CROP, 1);
   const height = clamp(start.height / scale, MIN_CROP, 1);
 
@@ -172,7 +173,7 @@ export function VideoCropper({
   onCropChange: (crop: VideoCrop) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const cropRef = useRef(crop);
   const dragRef = useRef<{
     mode: DragMode;
@@ -185,11 +186,16 @@ export function VideoCropper({
   const [meta, setMeta] = useState<VideoMeta | null>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
-  const [mode, setMode] = useState<EditMode>('crop');
+  const [mode, setMode] = useState<EditMode>('none');
+  const modeRef = useRef(mode);
 
   useEffect(() => {
     cropRef.current = crop;
   }, [crop]);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   const originalAspect = useMemo(() => {
     if (!meta?.width || !meta.height) return 16 / 9;
@@ -206,7 +212,7 @@ export function VideoCropper({
   );
 
   const startDrag = useCallback(
-    (event: ReactPointerEvent<HTMLElement>, mode: DragMode) => {
+    (event: ReactPointerEvent<HTMLElement>, dragMode: DragMode) => {
       event.preventDefault();
       event.stopPropagation();
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -216,7 +222,7 @@ export function VideoCropper({
       });
       lastPinchDistance.current = null;
       dragRef.current = {
-        mode,
+        mode: dragMode,
         startCrop: cropRef.current,
         startX: event.clientX,
         startY: event.clientY,
@@ -227,8 +233,8 @@ export function VideoCropper({
 
   const drag = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const stage = stageRef.current;
+      if (!stage) return;
 
       if (activePointers.current.has(event.pointerId)) {
         activePointers.current.set(event.pointerId, {
@@ -252,7 +258,7 @@ export function VideoCropper({
         return;
       }
 
-      const rect = canvas.getBoundingClientRect();
+      const rect = stage.getBoundingClientRect();
       updateCrop(
         resizeCrop(
           active.startCrop,
@@ -274,30 +280,24 @@ export function VideoCropper({
     }
   }, []);
 
-  const handleWheel = useCallback(
-    (event: ReactWheelEvent<HTMLDivElement>) => {
-      if (mode !== 'zoom') return;
+  // React attaches onWheel as a passive listener, so calling
+  // event.preventDefault() from a synthetic handler is a no-op and the page
+  // scrolls underneath the editor while the user tries to zoom. Attaching a
+  // native, non-passive listener lets us actually block the scroll — but
+  // only while the zoom tool is active.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const onWheel = (event: WheelEvent) => {
+      if (modeRef.current !== 'zoom') return;
       event.preventDefault();
       updateCrop(zoomCrop(cropRef.current, 1 - event.deltaY * 0.0015));
-    },
-    [mode, updateCrop],
-  );
-
-  useEffect(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-
-    let raf = 0;
-    const draw = () => {
-      drawCropEditorFrame(video, canvas, crop);
-      setTime(video.currentTime);
-      raf = requestAnimationFrame(draw);
     };
 
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, [crop, src]);
+    stage.addEventListener('wheel', onWheel, { passive: false });
+    return () => stage.removeEventListener('wheel', onWheel);
+  }, [updateCrop]);
 
   useEffect(() => {
     setMeta(null);
@@ -305,95 +305,123 @@ export function VideoCropper({
     setTime(0);
   }, [src]);
 
+  // Set once the user deliberately pauses, so the autoplay safety net below
+  // never fights an explicit Pause.
+  const userPaused = useRef(false);
+
   async function togglePlayback() {
     const video = videoRef.current;
     if (!video) return;
 
     if (video.paused) {
-      if (video.ended) video.currentTime = 0;
+      userPaused.current = false;
       await video.play();
       setPlaying(true);
     } else {
+      userPaused.current = true;
       video.pause();
       setPlaying(false);
     }
   }
 
   const displayedCrop = safeCrop(crop);
+  const overlayVisible = mode !== 'none' && meta !== null;
 
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-xl border border-white/10 bg-black/70 p-1.5">
         <div
-          className="relative mx-auto overflow-hidden rounded-lg bg-black"
+          ref={stageRef}
+          role="img"
+          aria-label="Clip preview"
+          className={`relative mx-auto overflow-hidden rounded-lg bg-black ${
+            // Only swallow touch gestures while a tool is active, so the page
+            // still scrolls normally when the user is just watching the clip.
+            mode === 'none' ? '' : 'touch-none'
+          }`}
           style={{ aspectRatio: `${originalAspect}` }}
-          onWheel={handleWheel}
         >
-          <canvas
-            ref={canvasRef}
-            className="h-full w-full"
-            aria-label="Video crop editor preview"
+          {/* The clip itself is the preview — it plays immediately so the
+              editor never shows a black frame. Sizing the stage to the
+              video's true aspect ratio (once known) means object-contain
+              never has to letterbox, so DOM overlay coordinates expressed
+              as percentages of this box line up exactly with the video
+              content. */}
+          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+          <video
+            ref={videoRef}
+            src={src}
+            className="h-full w-full object-contain"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            tabIndex={-1}
+            onLoadedMetadata={(event) => {
+              const video = event.currentTarget;
+              setMeta({
+                width: video.videoWidth,
+                height: video.videoHeight,
+                duration: video.duration,
+              });
+            }}
+            onCanPlay={(event) => {
+              // Belt-and-suspenders autoplay: the `autoPlay` attribute alone is
+              // not always honoured (React re-mounts, iOS Low Power Mode), but a
+              // muted play() is always permitted. Skip it if the user paused on
+              // purpose, or if this instance isn't rendered (the idle screen
+              // mounts both a mobile and a desktop layout; only one is visible,
+              // and waking the hidden one would decode the clip twice).
+              const el = event.currentTarget;
+              if (userPaused.current || el.offsetParent === null) return;
+              void el.play().catch(() => {});
+            }}
+            onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onEnded={() => setPlaying(false)}
           />
 
-          <div
-            className={`absolute touch-none ${
-              mode === 'zoom' ? 'cursor-grab active:cursor-grabbing' : 'cursor-move'
-            }`}
-            style={{
-              left: `${displayedCrop.x * 100}%`,
-              top: `${displayedCrop.y * 100}%`,
-              width: `${displayedCrop.width * 100}%`,
-              height: `${displayedCrop.height * 100}%`,
-            }}
-            onPointerDown={(event) => startDrag(event, 'move')}
-            onPointerMove={drag}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
-          >
-            <span className="pointer-events-none absolute inset-0 ring-2 ring-primary shadow-[0_0_0_9999px_rgb(0_0_0/0.02)]" />
-            <span className="pointer-events-none absolute left-1/3 top-0 h-full w-px bg-white/25" />
-            <span className="pointer-events-none absolute left-2/3 top-0 h-full w-px bg-white/25" />
-            <span className="pointer-events-none absolute left-0 top-1/3 h-px w-full bg-white/25" />
-            <span className="pointer-events-none absolute left-0 top-2/3 h-px w-full bg-white/25" />
+          {overlayVisible && (
+            <div
+              className={`absolute touch-none ${
+                mode === 'zoom' ? 'cursor-grab active:cursor-grabbing' : 'cursor-move'
+              }`}
+              style={{
+                left: `${displayedCrop.x * 100}%`,
+                top: `${displayedCrop.y * 100}%`,
+                width: `${displayedCrop.width * 100}%`,
+                height: `${displayedCrop.height * 100}%`,
+              }}
+              onPointerDown={(event) => startDrag(event, 'move')}
+              onPointerMove={drag}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+            >
+              <span className="pointer-events-none absolute inset-0 ring-2 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]" />
+              <span className="pointer-events-none absolute left-1/3 top-0 h-full w-px bg-white/25" />
+              <span className="pointer-events-none absolute left-2/3 top-0 h-full w-px bg-white/25" />
+              <span className="pointer-events-none absolute left-0 top-1/3 h-px w-full bg-white/25" />
+              <span className="pointer-events-none absolute left-0 top-2/3 h-px w-full bg-white/25" />
 
-            {mode === 'crop' &&
-              HANDLES.map((handle) => (
-                <button
-                  key={handle.mode}
-                  type="button"
-                  aria-label={`Resize crop ${handle.mode}`}
-                  className={`absolute h-7 w-7 rounded-full border-2 border-black bg-primary shadow-[0_0_18px_rgb(34_197_94/0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${handle.className} ${handle.cursor}`}
-                  onPointerDown={(event) => startDrag(event, handle.mode)}
-                  onPointerMove={drag}
-                  onPointerUp={endDrag}
-                  onPointerCancel={endDrag}
-                />
-              ))}
-          </div>
+              {mode === 'crop' &&
+                HANDLES.map((handle) => (
+                  <button
+                    key={handle.mode}
+                    type="button"
+                    aria-label={`Resize crop ${handle.mode}`}
+                    className={`absolute h-7 w-7 rounded-full border-2 border-black bg-primary shadow-[0_0_18px_rgb(34_197_94/0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${handle.className} ${handle.cursor}`}
+                    onPointerDown={(event) => startDrag(event, handle.mode)}
+                    onPointerMove={drag}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                  />
+                ))}
+            </div>
+          )}
         </div>
-
-        {/* Hidden playback source. The crop rectangle above is what gets exported. */}
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-        <video
-          ref={videoRef}
-          src={src}
-          className="sr-only"
-          muted
-          playsInline
-          preload="metadata"
-          onLoadedMetadata={(event) => {
-            const video = event.currentTarget;
-            setMeta({
-              width: video.videoWidth,
-              height: video.videoHeight,
-              duration: video.duration,
-            });
-            onCropChange(DEFAULT_VIDEO_CROP);
-          }}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onEnded={() => setPlaying(false)}
-        />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -401,8 +429,9 @@ export function VideoCropper({
           type="button"
           variant={mode === 'crop' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setMode('crop')}
-          className="gap-2"
+          aria-pressed={mode === 'crop'}
+          onClick={() => setMode((current) => (current === 'crop' ? 'none' : 'crop'))}
+          className={`gap-2 ${mode === 'crop' ? 'ring-2 ring-primary/60 ring-offset-2 ring-offset-background' : ''}`}
         >
           <Crop className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
           Crop
@@ -411,8 +440,9 @@ export function VideoCropper({
           type="button"
           variant={mode === 'zoom' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setMode('zoom')}
-          className="gap-2"
+          aria-pressed={mode === 'zoom'}
+          onClick={() => setMode((current) => (current === 'zoom' ? 'none' : 'zoom'))}
+          className={`gap-2 ${mode === 'zoom' ? 'ring-2 ring-primary/60 ring-offset-2 ring-offset-background' : ''}`}
         >
           <ZoomIn className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
           Zoom
