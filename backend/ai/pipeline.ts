@@ -158,68 +158,6 @@ async function openRouterChat({
   return text;
 }
 
-async function localMlxChat({
-  prompt,
-  videoBase64,
-  videoMimeType,
-  skeletonBase64,
-  json = false,
-}: {
-  prompt: string;
-  videoBase64?: string | null;
-  videoMimeType?: string;
-  skeletonBase64?: string | null;
-  json?: boolean;
-}): Promise<string> {
-  const mode = process.env.AI_VIDEO_MODE || 'mask';
-  const formData = new FormData();
-  
-  if (json) {
-    prompt += "\n\nYou MUST return only valid JSON matching the AdjudicationSchema. Do not include markdown formatting or conversational text.";
-  }
-  formData.append('prompt', prompt);
-  
-  const appendBlob = (base64Str: string, name: string) => {
-    const byteCharacters = atob(base64Str);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: videoMimeType || 'video/mp4' });
-    formData.append(name, blob, `${name}.mp4`);
-  };
-
-  if (mode === 'stacked' && videoBase64 && skeletonBase64) {
-    // Pass BOTH videos
-    appendBlob(videoBase64, 'video');
-    appendBlob(skeletonBase64, 'skeleton_video');
-  } else if (mode === 'mask' && skeletonBase64) {
-    // Prefer mask if available
-    appendBlob(skeletonBase64, 'video');
-  } else if (videoBase64) {
-    // Fallback to raw video
-    appendBlob(videoBase64, 'video');
-  }
-
-  const res = await fetch('http://127.0.0.1:8000/analyze-mlx', {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Local MLX ${res.status}: ${body}`);
-  }
-
-  const data = await res.json();
-  if (data.error) {
-    throw new Error(`Local MLX Error: ${data.error}`);
-  }
-
-  return data.text;
-}
-
 async function observePlay({
   prompt,
   videoBase64,
@@ -233,14 +171,7 @@ async function observePlay({
   skeletonBase64: string | null;
   keyFramesBase64?: string[] | null;
 }): Promise<string> {
-  if (process.env.USE_LOCAL_MLX === 'true') {
-    return localMlxChat({
-      prompt,
-      videoBase64,
-      videoMimeType,
-      skeletonBase64,
-    });
-  }
+
   if (process.env.OPENROUTER_API_KEY) {
     return openRouterChat({
       prompt,
@@ -292,10 +223,7 @@ async function observePlay({
 }
 
 async function adjudicatePlay(prompt: string): Promise<z.infer<typeof AdjudicationSchema>> {
-  if (process.env.USE_LOCAL_MLX === 'true') {
-    const text = await localMlxChat({ prompt, json: true });
-    return AdjudicationSchema.parse(JSON.parse(extractJson(text)));
-  }
+
 
   if (process.env.OPENROUTER_API_KEY) {
     const text = await openRouterChat({ prompt, json: true });
