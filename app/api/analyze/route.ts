@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     }
 
     // Call the hybrid CV service to get annotated video and telemetry
-    const enableCV = process.env.ENABLE_CV_SERVICE === 'true';
+    const enableCV = process.env.NEXT_PUBLIC_ENABLE_SAM === 'true';
     
     if (enableCV) {
       try {
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
         console.warn('CV service unreachable. Proceeding with raw video.', e);
       }
     } else {
-      console.log('CV service is disabled via ENABLE_CV_SERVICE env var. Proceeding with raw video.');
+      console.log('CV service is disabled via NEXT_PUBLIC_ENABLE_SAM env var. Proceeding with raw video.');
     }
 
     const response = await runAnalysisPipeline(

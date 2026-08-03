@@ -171,6 +171,7 @@ async function localMlxChat({
   skeletonBase64?: string | null;
   json?: boolean;
 }): Promise<string> {
+  const mode = process.env.AI_VIDEO_MODE || 'mask';
   const formData = new FormData();
   
   if (json) {
@@ -178,22 +179,30 @@ async function localMlxChat({
   }
   formData.append('prompt', prompt);
   
-  // We prefer the skeleton video if we have it, else raw video
-  const targetVideoBase64 = skeletonBase64 || videoBase64;
-  
-  if (targetVideoBase64) {
-    // Convert base64 to Blob
-    const byteCharacters = atob(targetVideoBase64);
+  const appendBlob = (base64Str: string, name: string) => {
+    const byteCharacters = atob(base64Str);
     const byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
       byteNumbers[i] = byteCharacters.charCodeAt(i);
     }
     const byteArray = new Uint8Array(byteNumbers);
     const blob = new Blob([byteArray], { type: videoMimeType || 'video/mp4' });
-    formData.append('video', blob, 'video.mp4');
+    formData.append(name, blob, `${name}.mp4`);
+  };
+
+  if (mode === 'stacked' && videoBase64 && skeletonBase64) {
+    // Pass BOTH videos
+    appendBlob(videoBase64, 'video');
+    appendBlob(skeletonBase64, 'skeleton_video');
+  } else if (mode === 'mask' && skeletonBase64) {
+    // Prefer mask if available
+    appendBlob(skeletonBase64, 'video');
+  } else if (videoBase64) {
+    // Fallback to raw video
+    appendBlob(videoBase64, 'video');
   }
 
-  const res = await fetch('http://localhost:8000/analyze-mlx', {
+  const res = await fetch('http://127.0.0.1:8000/analyze-mlx', {
     method: 'POST',
     body: formData,
   });

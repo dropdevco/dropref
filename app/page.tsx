@@ -43,6 +43,7 @@ import { ResultView } from '@/components/result-view';
 import { ErrorView } from '@/components/error-view';
 import { ProductTour } from '@/components/tour/product-tour';
 import { TourDemoEditor } from '@/components/tour/tour-demo-editor';
+import { AdvancedLayer } from '@/components/advanced-layer';
 
 type Phase = 'idle' | 'analyzing' | 'result' | 'error';
 
@@ -77,6 +78,9 @@ export default function Home() {
   );
   const [crop, setCrop] = useState<VideoCrop>(DEFAULT_VIDEO_CROP);
   const [trim, setTrim] = useState<VideoTrim | null>(null);
+  const [showAdvancedLayer, setShowAdvancedLayer] = useState(false);
+  const [skeletonFile, setSkeletonFile] = useState<File | null>(null);
+  const [skeletonPreview, setSkeletonPreview] = useState<string | null>(null);
   const [sourceDuration, setSourceDuration] = useState(0);
   const [sport, setSport] = useState<SportId | null>(null);
   const [originalCall, setOriginalCall] = useState('');
@@ -231,6 +235,7 @@ export default function Home() {
       video: videoToAnalyze,
       sport,
       originalCall: originalCall.trim() || null,
+      skeletonVideo: skeletonFile || undefined,
     });
     if (isAnalyzeError(outcome)) {
       setError(outcome);
@@ -247,6 +252,9 @@ export default function Home() {
     setSubmittedPreview(null);
     setFile(null);
     setPreparedFile(null);
+    setSkeletonFile(null);
+    setSkeletonPreview(null);
+    setShowAdvancedLayer(false);
     setCrop(DEFAULT_VIDEO_CROP);
     setTrim(null);
     setSourceDuration(0);
@@ -292,6 +300,19 @@ export default function Home() {
           className="w-full motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
         >
           {phase === 'idle' && (
+            showAdvancedLayer && file ? (
+              <AdvancedLayer
+                videoFile={file}
+                crop={crop}
+                trim={trim ? [trim.start, trim.end] : [0, sourceDuration]}
+                onCancel={() => setShowAdvancedLayer(false)}
+                onComplete={(skeletonFile: File) => {
+                  setSkeletonFile(skeletonFile);
+                  setSkeletonPreview(URL.createObjectURL(skeletonFile));
+                  setShowAdvancedLayer(false);
+                }}
+              />
+            ) :
             <>
               <div className="hidden gap-7 py-3 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(390px,460px)] lg:items-start">
                 <div className="space-y-5">
@@ -323,10 +344,26 @@ export default function Home() {
                                 src={previewUrl}
                                 crop={crop}
                                 onCropChange={updateCrop}
-                        trim={trim}
-                        onTrimChange={updateTrim}
+                                trim={trim}
+                                onTrimChange={updateTrim}
                               />
                             </div>
+                            {skeletonPreview && (
+                              <div className="p-4 rounded-xl border border-white/10 bg-white/5 space-y-3">
+                                <p className="text-sm font-medium flex items-center text-white">
+                                  <Zap className="mr-2 h-4 w-4 text-primary" />
+                                  Generated Tracking Mask
+                                </p>
+                                <video 
+                                  src={skeletonPreview} 
+                                  autoPlay 
+                                  loop 
+                                  muted 
+                                  playsInline 
+                                  className="w-full rounded-lg border border-white/10" 
+                                />
+                              </div>
+                            )}
                             <button
                               type="button"
                               onClick={() => {
@@ -334,6 +371,8 @@ export default function Home() {
                                 setSubmittedPreview(null);
                                 setFile(null);
                                 setPreparedFile(null);
+                                setSkeletonFile(null);
+                                setSkeletonPreview(null);
                                 setCrop(DEFAULT_VIDEO_CROP);
                               }}
                               className="self-start rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -439,6 +478,20 @@ export default function Home() {
                     </p>
                   )}
 
+                  {process.env.NEXT_PUBLIC_ENABLE_SAM === 'true' && (!hasEdits || preparedFile) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowAdvancedLayer(true)}
+                      disabled={!canAnalyze}
+                      size="lg"
+                      className="h-12 w-full text-base"
+                    >
+                      <Zap className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                      {skeletonFile ? 'Edit Tracking Mask' : 'Advanced Tracking Layer'}
+                    </Button>
+                  )}
+
                   <Button
                     onClick={onAnalyze}
                     disabled={!canAnalyze}
@@ -479,10 +532,26 @@ export default function Home() {
                             src={previewUrl}
                             crop={crop}
                             onCropChange={updateCrop}
-                        trim={trim}
-                        onTrimChange={updateTrim}
+                            trim={trim}
+                            onTrimChange={updateTrim}
                           />
                         </div>
+                        {skeletonPreview && (
+                          <div className="p-4 rounded-xl border border-white/10 bg-white/5 space-y-3">
+                            <p className="text-sm font-medium flex items-center text-white">
+                              <Zap className="mr-2 h-4 w-4 text-primary" />
+                              Generated Tracking Mask
+                            </p>
+                            <video 
+                              src={skeletonPreview} 
+                              autoPlay 
+                              loop 
+                              muted 
+                              playsInline 
+                              className="w-full rounded-lg border border-white/10" 
+                            />
+                          </div>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
@@ -490,6 +559,8 @@ export default function Home() {
                             setSubmittedPreview(null);
                             setFile(null);
                             setPreparedFile(null);
+                            setSkeletonFile(null);
+                            setSkeletonPreview(null);
                             setCrop(DEFAULT_VIDEO_CROP);
                           }}
                           className="rounded text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -568,6 +639,20 @@ export default function Home() {
                       <p className="text-xs text-muted-foreground">
                         You edited the crop/zoom — set the video above before checking the call.
                       </p>
+                    )}
+
+                    {process.env.NEXT_PUBLIC_ENABLE_SAM === 'true' && (!hasEdits || preparedFile) && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowAdvancedLayer(true)}
+                        disabled={!canAnalyze}
+                        size="lg"
+                        className="w-full"
+                      >
+                        <Zap className="mr-2 h-4 w-4" strokeWidth={2} aria-hidden />
+                        {skeletonFile ? 'Edit Tracking Mask' : 'Advanced Tracking Layer'}
+                      </Button>
                     )}
 
                     <Button
