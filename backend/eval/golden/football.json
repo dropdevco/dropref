@@ -1,0 +1,510 @@
+{
+  "sport": "football",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "football-catch-process-001",
+      "sport": "football",
+      "observation": "The receiver runs a comeback route near the right sideline and turns back toward the quarterback. He takes the ball into both hands at chest height while both feet are still off the ground, then plants his right foot and then his left foot on the grass inside the white sideline stripe. With the ball secured against his chest he tucks it under his right arm, turns upfield and takes two additional steps before the cornerback wraps him and brings him down. The ball stays in his arm through the tackle and after he lands.",
+      "originalCall": "catch — pass complete",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 1, Article 3 :: completed-pass"
+      ],
+      "difficulty": "easy",
+      "tag": "catch-process",
+      "rationale": "Rule 8-1-3 requires control of the ball before it touches the ground, two feet (or another body part) down inbounds, and then an act common to the game. He secured the ball, got both feet down inbounds, then tucked it and took two steps upfield, so the catch ruling was correct."
+    },
+    {
+      "id": "football-catch-process-002",
+      "sport": "football",
+      "observation": "The tight end catches the ball cleanly in both hands at the thirty-yard line with his body upright and both feet already on the ground inbounds. He pulls the ball into his chest, takes a step forward with his left foot and extends the ball forward toward the goal line with his right hand. The safety then strikes his right forearm and the ball comes out and bounces on the turf. Two other players dive onto the loose ball.",
+      "originalCall": "incomplete pass",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 1, Article 3 :: completed-pass"
+      ],
+      "difficulty": "medium",
+      "tag": "catch-process",
+      "rationale": "Under Rule 8-1-3 the pass was already complete: control was secured, both feet were down inbounds, and he then performed acts common to the game — tucking the ball away, taking an additional step and extending it forward. Ruling the pass incomplete was therefore wrong."
+    },
+    {
+      "id": "football-catch-process-003",
+      "sport": "football",
+      "observation": "The receiver dives forward and fully extends for a low throw over the middle. He gets both hands under the ball and traps it briefly against his forearms as his chest and elbows hit the turf. On that impact with the ground the ball squirts forward out of his hands and rolls two yards away. He never gets a hold of it again before it stops rolling.",
+      "originalCall": "incomplete pass",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 1, Article 4 :: incomplete-pass"
+      ],
+      "difficulty": "easy",
+      "tag": "catch-process",
+      "rationale": "Rule 8-1-4 states that a player who goes to the ground in the act of catching a pass must maintain control until after his initial contact with the ground. The ball came loose on that first contact, so the incompletion was correct."
+    },
+    {
+      "id": "football-catch-process-004",
+      "sport": "football",
+      "observation": "The receiver slides feet-first to reach a low pass near the sideline. He gets one hand on top of the ball and one underneath it as he goes down onto his hip. When his hip and shoulder land, the ball hits the turf and pops several inches into the air, out of both hands. He then re-grabs it while it is still in the air and holds it up.",
+      "originalCall": "catch — pass complete",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 1, Article 4 :: incomplete-pass"
+      ],
+      "difficulty": "easy",
+      "tag": "catch-process",
+      "rationale": "Rule 8-1-4 requires a player going to the ground in the act of catching to maintain control until after his initial contact with the ground. The ball came loose on impact and was only regrabbed afterwards, so ruling a completed catch was wrong."
+    },
+    {
+      "id": "football-ground-catch-005",
+      "sport": "football",
+      "observation": "The receiver dives and gets both hands around a low throw just before it reaches the turf. As his body lands, the nose of the ball contacts the grass and the ball rotates about a quarter turn and slides several inches forward underneath his hands. His right hand comes off the ball during that movement and his left hand slides back to the laces. He then clamps down on the ball and rolls onto his back holding it against his chest.",
+      "originalCall": "catch — pass complete",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 1, Article 4 :: incomplete-pass"
+      ],
+      "difficulty": "hard",
+      "tag": "ground-catch",
+      "rationale": "Rule 8-1-4 requires control to be maintained until after initial contact with the ground. The ball rotated and slid under his hands and one hand came off it during the landing, which is a loss of control, so the completion ruling was wrong."
+    },
+    {
+      "id": "football-ground-catch-006",
+      "sport": "football",
+      "observation": "The receiver slides to his knees to reach a low pass and gets both hands around the ball with his palms between the ball and the grass. His knees and then his hip touch the ground inbounds while the ball stays wedged between his hands and his forearm and never contacts the turf. The ball does not move or rotate as he lands. He then pushes himself up with one elbow, stands, and takes a step upfield with the ball still in both hands.",
+      "originalCall": "catch — pass complete",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 1, Article 3 :: completed-pass"
+      ],
+      "difficulty": "medium",
+      "tag": "ground-catch",
+      "rationale": "Rule 8-1-3 is satisfied: he secured control in his hands before the ball touched the ground, touched the ground inbounds with body parts other than his hands, and then performed acts common to the game by standing and stepping upfield. The catch ruling was correct."
+    },
+    {
+      "id": "football-touchdown-plane-007",
+      "sport": "football",
+      "observation": "The running back takes the handoff and runs toward the left corner of the end zone. As the cornerback hits him at the two-yard line he extends both arms and carries the ball forward past the orange pylon. The ball is outside the sideline stripe but level with and then beyond the goal line while his knee is still in the air. His knee touches the ground only after the ball has passed the goal line.",
+      "originalCall": "touchdown",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 11, Section 3, Article 1 :: touchdown"
+      ],
+      "difficulty": "easy",
+      "tag": "touchdown-plane",
+      "rationale": "Rule 11-3-1 scores a touchdown when the ball is on, above or behind the plane of the goal line in possession of a runner who has advanced from the field of play. The ball crossed the plane before his knee was down, so the touchdown signal was correct."
+    },
+    {
+      "id": "football-touchdown-plane-008",
+      "sport": "football",
+      "observation": "The running back is met head-on by two linebackers at the one-yard line and his forward movement stops with the ball held against his chest. He is held upright for about a second and then driven backwards two yards while still on his feet. The ball never gets closer than about a yard to the goal line at any point. He is then pulled to the ground at the three-yard line.",
+      "originalCall": "touchdown",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 11, Section 3, Article 1 :: touchdown"
+      ],
+      "difficulty": "easy",
+      "tag": "touchdown-plane",
+      "rationale": "Rule 11-3-1 requires the ball to be on, above or behind the plane of the goal line. The ball stayed roughly a yard short before he was driven backwards, so signalling a touchdown was wrong."
+    },
+    {
+      "id": "football-dpi-arm-across-body-009",
+      "sport": "football",
+      "observation": "The receiver runs a deep post and the quarterback releases the ball toward him about twenty-five yards downfield. The cornerback runs shoulder to shoulder with him and never turns his head back toward the quarterback. As the ball descends he extends his right arm across the front of the receiver's chest and pins the receiver's near arm against his body. The receiver cannot raise his hands and the ball falls incomplete beside them.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 2 (Restrictions) :: acts-that-are-pass-interference"
+      ],
+      "difficulty": "easy",
+      "tag": "dpi-arm-across-body",
+      "rationale": "Rule 8-5-2 (Restrictions) lists extending an arm across the body of an opponent so as to restrict his ability to catch a pass, and contact by a player who is not playing the ball that restricts the opportunity to make the catch. The flag was correct."
+    },
+    {
+      "id": "football-dpi-grab-arm-010",
+      "sport": "football",
+      "observation": "The receiver breaks toward the sideline about eighteen yards past the line of scrimmage and the ball is already in the air toward him. The defender, trailing by half a step, closes his right hand around the receiver's left forearm and pulls it down and back. The receiver's shoulders turn away from the ball as his arm is pulled. The ball arrives at his chest and drops to the ground.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 2 (Restrictions) :: acts-that-are-pass-interference"
+      ],
+      "difficulty": "easy",
+      "tag": "dpi-grab-arm",
+      "rationale": "Rule 8-5-2 (Restrictions) makes it pass interference to grab an opponent's arm in a manner that restricts his opportunity to catch a pass. The flag was correct."
+    },
+    {
+      "id": "football-dpi-after-ball-touched-011",
+      "sport": "football",
+      "observation": "The quarterback throws over the middle and the ball is tipped at the line of scrimmage by a defensive lineman's raised hand, which visibly changes its flight. The ball continues downfield toward the receiver, wobbling and dropping short. After that tip, the safety runs through the receiver and knocks him down with his shoulder while the ball is still in the air. The ball lands on the turf beside the two of them.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 2 :: defensive-pass-interference"
+      ],
+      "difficulty": "medium",
+      "tag": "dpi-after-ball-touched",
+      "rationale": "Rule 8-5-2 provides that defensive pass interference rules apply from the time the ball is thrown until the ball is touched. The ball had already been touched by the defensive lineman, so the later contact could not be pass interference and the flag was wrong."
+    },
+    {
+      "id": "football-contact-within-one-yard-012",
+      "sport": "football",
+      "observation": "The receiver releases off the line of scrimmage and the cornerback jams him with both hands to the chest while the two are still roughly half a yard beyond the line. The contact knocks the receiver a step sideways and ends immediately; the defender's hands come off and the receiver continues downfield untouched. The quarterback then throws toward that receiver about twelve yards downfield with no further contact between the two. The ball falls incomplete.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 3 :: permissible-acts-not-pass-interference"
+      ],
+      "difficulty": "medium",
+      "tag": "contact-within-one-yard",
+      "rationale": "Rule 8-5-3 states that acts which do not occur more than one yard beyond the line of scrimmage are not pass interference. The only contact was within a yard of the line, so the DPI flag was wrong."
+    },
+    {
+      "id": "football-uncatchable-ball-no-dpi-013",
+      "sport": "football",
+      "observation": "The quarterback is hit as he throws and the ball sails high and well wide of the intended receiver, crossing the sideline about eight yards beyond him and landing out of bounds untouched. While the ball is in the air the cornerback's shoulder makes contact with the receiver's shoulder as the two run side by side. Neither player's arms are extended and the receiver never breaks stride or reaches for the ball. The ball comes down roughly ten yards from where the two players are running.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 3 :: permissible-acts-not-pass-interference"
+      ],
+      "difficulty": "hard",
+      "tag": "uncatchable-ball-no-dpi",
+      "rationale": "Rule 8-5-3 treats incidental body contact as no interference and directs that where there is any question the ruling should be no interference. With the throw landing out of bounds about ten yards away there was no opportunity to catch the ball for the shoulder contact to significantly hinder, so the flag was wrong."
+    },
+    {
+      "id": "football-uncatchable-ball-no-dpi-014",
+      "sport": "football",
+      "observation": "The quarterback throws deep down the right sideline and the ball travels far over the receiver's head, landing on the track behind the end line about ten yards past him. As the receiver runs under the flight of the ball the safety's hip and shoulder brush against him and the two get momentarily tangled. The receiver slows but never raises his hands or looks for the ball after it passes above him. Neither player grabs or holds the other at any point.",
+      "originalCall": null,
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 3 :: permissible-acts-not-pass-interference"
+      ],
+      "difficulty": "medium",
+      "tag": "uncatchable-ball-no-dpi",
+      "rationale": "Ruling mode (no call on the field). Rule 8-5-3 treats incidental body contact as no interference and directs questionable contact to be ruled no interference, and the ball landed ten yards beyond the receiver so there was no opportunity to catch to hinder. The correct ruling is no foul (FAIR_CALL = nothing to penalise)."
+    },
+    {
+      "id": "football-dpi-through-back-015",
+      "sport": "football",
+      "observation": "The receiver settles under a deep ball with his back to the defender and his arms raised to catch it. The trailing safety arrives a beat late, plants both forearms into the middle of the receiver's back and pushes off him, driving his chest across the receiver's shoulders as he reaches for the ball. The receiver is pushed forward and down onto his hands and knees before the ball arrives. The safety's hand touches the ball only after his body weight has gone through the receiver's back.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 2 (Restrictions) :: acts-that-are-pass-interference"
+      ],
+      "difficulty": "hard",
+      "tag": "dpi-through-back",
+      "rationale": "Rule 8-5-2 (Restrictions) lists playing through the back of an opponent in an attempt to make a play on the ball as pass interference. The defender's weight went through the receiver's back before he touched the ball, so the flag was correct."
+    },
+    {
+      "id": "football-simultaneous-arrival-no-dpi-016",
+      "sport": "football",
+      "observation": "The receiver and the safety both track a high pass over the middle and both turn their heads to locate it as it comes down. They arrive at the spot at the same instant, shoulder to shoulder and both facing the ball, and each extends his inside hand toward it. Their shoulders and hip pads collide as they reach, and the ball deflects off the safety's hand and falls incomplete. Neither player's arm crosses the other's body and neither pushes off before the ball arrives.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 3 :: permissible-acts-not-pass-interference"
+      ],
+      "difficulty": "hard",
+      "tag": "simultaneous-arrival-no-dpi",
+      "rationale": "Rule 8-5-3 provides that incidental contact by hands, arms or body when both players are competing for the ball is not interference, and that questionable contact should be ruled no interference. Both players located and played the ball and arrived together, so the flag was wrong."
+    },
+    {
+      "id": "football-dpi-early-contact-before-throw-017",
+      "sport": "football",
+      "observation": "The receiver runs a deep in-cut and is about twelve yards past the line of scrimmage when the linebacker closes on him. The quarterback is still holding the ball at his shoulder with both hands, scanning to his left. The linebacker takes a fistful of the receiver's jersey at the ribs and holds it for about two strides, pulling the receiver off his route. He lets go, and only afterwards does the quarterback throw to a different receiver on the opposite side of the field.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 1, Article 6 :: defensive-holding"
+      ],
+      "difficulty": "medium",
+      "tag": "dpi-early-contact-before-throw",
+      "rationale": "Ruling mode (no call on the field). Rule 8-5-2 limits defensive pass interference to the period from the time the ball is thrown until it is touched, and the ball had not yet been thrown, so the applicable rule is Rule 12-1-6, which forbids grabbing an eligible receiver's jersey prior to the pass. A foul occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "football-defensive-holding-018",
+      "sport": "football",
+      "observation": "The tight end tries to release inside off the line of scrimmage and the linebacker grabs his jersey at the shoulder with both hands. He holds on and keeps the tight end pinned in place for roughly two seconds while the quarterback scrambles to his right. The tight end's route is stopped completely and he is turned sideways. The quarterback eventually throws the ball away toward the sideline.",
+      "originalCall": "defensive holding",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 1, Article 6 :: defensive-holding"
+      ],
+      "difficulty": "easy",
+      "tag": "defensive-holding",
+      "rationale": "Rule 12-1-6 makes it defensive holding to tackle or hold any opponent other than a runner, giving the example of grabbing an eligible receiver's jersey prior to the pass. The flag was correct."
+    },
+    {
+      "id": "football-dpi-restriction-019",
+      "sport": "football",
+      "observation": "The ball is thrown toward the receiver on a corner route about twenty yards downfield. The cornerback is facing the receiver with his back to the quarterback and never looks for the ball. As the ball descends he wraps both arms around the receiver's upper arms from the front and pins them to the receiver's sides. The receiver cannot raise his hands and the ball hits him in the chest and drops to the turf.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 2 (Restrictions) :: acts-that-are-pass-interference"
+      ],
+      "difficulty": "medium",
+      "tag": "dpi-restriction",
+      "rationale": "Ruling mode (no call on the field). Rule 8-5-2 (Restrictions) lists contact by a player who is not playing the ball that restricts the opponent's opportunity to make the catch. A foul occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "football-incidental-contact-no-dpi-020",
+      "sport": "football",
+      "observation": "The receiver and the defender both turn their heads to the ball as it is thrown about fifteen yards downfield, and both run toward the same spot with their eyes up. Their feet tangle briefly as they converge and the receiver stumbles a half step. Neither player's hands touch the other, and both keep their arms up reaching for the ball. The pass is slightly overthrown and lands beyond both of them.",
+      "originalCall": null,
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 5, Article 3 :: permissible-acts-not-pass-interference"
+      ],
+      "difficulty": "medium",
+      "tag": "incidental-contact-no-dpi",
+      "rationale": "Ruling mode (no call on the field). Rule 8-5-3 treats contact as incidental when both players are competing for the ball and directs that questionable contact be ruled no interference. The correct ruling is no foul (FAIR_CALL = nothing to penalise)."
+    },
+    {
+      "id": "football-offensive-holding-021",
+      "sport": "football",
+      "observation": "The right tackle sets to block the edge rusher, who beats him to the outside shoulder. As the rusher gets past him the tackle reaches out with his right hand, grabs a handful of jersey at the back of the rusher's shoulder pad and jerks him backwards. The rusher's upper body twists around and he is pulled off his feet onto the turf. The quarterback is still standing in the pocket when this happens.",
+      "originalCall": "holding, offense",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 1, Article 3 :: offensive-holding"
+      ],
+      "difficulty": "easy",
+      "tag": "offensive-holding",
+      "rationale": "Rule 12-1-3 makes it offensive holding to grab an opponent, to hook, jerk, twist or turn him, or to pull him to the ground. All of those occurred, so the flag was correct."
+    },
+    {
+      "id": "football-offensive-holding-022",
+      "sport": "football",
+      "observation": "The left guard engages the defensive tackle with both hands inside the defender's chest plate and his elbows tight to his own body. The defender tries to swim over the top and the guard mirrors him, sliding his feet and keeping his hands inside the frame of the defender's shoulders. The defender is carried past the quarterback by his own momentum and falls to one knee on his own. At no point do the guard's hands leave the chest plate or close on the jersey, and the defender is not pulled, twisted or turned.",
+      "originalCall": "holding, offense",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 1, Article 3 :: offensive-holding"
+      ],
+      "difficulty": "medium",
+      "tag": "offensive-holding",
+      "rationale": "Rule 12-1-3 requires a grab or tackle, a hook, jerk, twist or turn, or a pull to the ground. None of those occurred — the hands stayed inside the frame and the defender fell on his own — so the holding flag was wrong."
+    },
+    {
+      "id": "football-offensive-holding-023",
+      "sport": "football",
+      "observation": "The wide receiver blocks downfield on a screen pass and the cornerback tries to run around him toward the ball carrier. The receiver reaches out with his left arm, hooks it around the cornerback's right arm and spins him a half turn away from the play. The cornerback loses his footing and goes down onto the turf. The receiver keeps hold of the arm until the cornerback is on the ground.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 1, Article 3 :: offensive-holding"
+      ],
+      "difficulty": "easy",
+      "tag": "offensive-holding",
+      "rationale": "Ruling mode (no call on the field). Rule 12-1-3 makes it offensive holding to hook, twist or turn an opponent or to pull him to the ground. A foul occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "football-occluded-contact-024",
+      "sport": "football",
+      "observation": "The receiver runs a shallow crossing route and the linebacker moves with him, closing to arm's length. At the moment their bodies meet, the umpire and two linemen cross directly between the camera and the pair, and the defender's hands are physically blocked from view for about a second. When the view clears the receiver has slowed and the defender's hands are down at his sides. No frame of the clip shows where the defender's hands were during the contact.",
+      "originalCall": "defensive holding",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-contact",
+      "rationale": "Rule 12-1-6 turns on whether the defender tackled or held the receiver, and the defender's hands are physically blocked from view for the whole of the contact. No rule can be established from this observation."
+    },
+    {
+      "id": "football-targeting-crown-025",
+      "sport": "football",
+      "observation": "The receiver catches a short pass over the middle and turns upfield. The safety comes downhill, drops his chin to his chest so that the top of his helmet faces forward, and launches into him. The crown of the safety's helmet strikes the receiver squarely in the chest with an audible crack and the receiver is knocked backwards off his feet. The safety's shoulders arrive after his helmet and his head stays down through the contact.",
+      "originalCall": "targeting",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 2, Article 9 :: use-of-helmet-targeting"
+      ],
+      "difficulty": "hard",
+      "tag": "targeting-crown",
+      "rationale": "Rule 12-2-9 makes it a foul if a player lowers his head and makes forcible contact with his helmet against an opponent. The crown of the helmet was the point of contact and the head was lowered, so the flag was correct."
+    },
+    {
+      "id": "football-targeting-crown-026",
+      "sport": "football",
+      "observation": "The running back is cut off in the hole and the linebacker steps up to meet him. The linebacker keeps his head up and turns his face to the left of the runner, so that his facemask passes outside the runner's body. He strikes the runner in the midsection with his right shoulder pad and wraps both arms around him. The two helmets never touch each other and the linebacker's head stays up throughout the collision.",
+      "originalCall": "targeting",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 2, Article 9 :: use-of-helmet-targeting"
+      ],
+      "difficulty": "hard",
+      "tag": "targeting-crown",
+      "rationale": "Rule 12-2-9 requires that a player lower his head and make forcible contact with his helmet, or use his helmet or facemask to butt or ram an opponent. The contact was shoulder to midsection with the head up and turned away, so the targeting flag was wrong."
+    },
+    {
+      "id": "football-defenseless-posture-027",
+      "sport": "football",
+      "observation": "The receiver runs a crossing route and leaps with both arms fully extended above his head for a high throw, his eyes up on the ball and his torso stretched out. Before the ball reaches his hands the safety arrives and drives his shoulder pad up into the receiver's chin and the side of his helmet. The receiver's head snaps back and he lands flat on his back; the ball arrives afterwards and falls incomplete. His arms are still above his head at the instant of contact.",
+      "originalCall": "unnecessary roughness — hit on a defenseless receiver",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 2, Article 9 (Defenseless Player) :: players-in-a-defenseless-posture"
+      ],
+      "difficulty": "hard",
+      "tag": "defenseless-posture",
+      "rationale": "Rule 12-2-9 (Defenseless Player) prohibits forcibly hitting the head or neck area of a defenseless player with the shoulder. A receiver stretched out with his arms up who has not yet touched the ball is in a defenseless posture, so the foul was correctly called."
+    },
+    {
+      "id": "football-defenseless-posture-028",
+      "sport": "football",
+      "observation": "The receiver catches a slant pass in stride at the twenty-yard line, brings the ball down and tucks it under his left arm. He takes three full steps upfield and turns his shoulders square to the oncoming linebacker, lowering his own pad level. The linebacker hits him chest to chest with his shoulder, with his own head up and to the side, and wraps him up. Neither helmet contacts the other player's head or neck, and the receiver is driven back two yards and tackled.",
+      "originalCall": "hit on a defenseless receiver",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 2, Article 9 (Defenseless Player) :: players-in-a-defenseless-posture"
+      ],
+      "difficulty": "hard",
+      "tag": "defenseless-posture",
+      "rationale": "Rule 12-2-9 (Defenseless Player) applies to a player in a defenseless posture and prohibits forcible contact to his head or neck area or lowering the head into him. He had completed the catch, tucked the ball, taken three steps and squared up as a runner, and the contact was chest to chest with the head up, so the foul was wrongly called."
+    },
+    {
+      "id": "football-targeting-helmet-029",
+      "sport": "football",
+      "observation": "The quarterback scrambles out of the pocket and begins a feet-first slide at the thirty-yard line with the ball held against his chest. The pursuing defender leaves his feet, lowers his head and rams the top of his helmet into the quarterback's facemask. The quarterback's head is driven backwards into the turf. The defender's helmet is the only point of contact.",
+      "originalCall": "targeting",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 2, Article 9 :: use-of-helmet-targeting"
+      ],
+      "difficulty": "easy",
+      "tag": "targeting-helmet",
+      "rationale": "Rule 12-2-9 makes it a foul to lower the head and make forcible helmet contact against an opponent, or to use the helmet or facemask to butt or ram him. Both occurred, so the flag was correct."
+    },
+    {
+      "id": "football-roughing-passer-030",
+      "sport": "football",
+      "observation": "The quarterback releases the pass with a full follow-through and the ball is already fifteen yards downfield. The rusher arrives afterwards, wraps both arms around the quarterback's waist, lifts him off the ground and drives him down onto his back. The rusher lands on top of him with his full body weight and does not brace with either hand. The quarterback's helmet bounces off the turf.",
+      "originalCall": "roughing the passer",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 2, Article 12 :: roughing-the-passer"
+      ],
+      "difficulty": "easy",
+      "tag": "roughing-passer",
+      "rationale": "Rule 12-2-12 prohibits a rushing defender from stuffing the passer into the ground or unnecessarily wrestling or driving him down. Lifting and driving him down with full body weight after the release is exactly that, so the flag was correct."
+    },
+    {
+      "id": "football-occluded-contact-031",
+      "sport": "football",
+      "observation": "The quarterback throws from inside a collapsing pocket with four linemen around him. As the ball leaves his hand the pocket closes and he disappears from view behind two offensive linemen and the rusher. The pile then falls to the turf with the quarterback at the bottom. No frame shows whether the rusher drove the quarterback down or was himself pushed into him and fell on top of him.",
+      "originalCall": "roughing the passer",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-contact",
+      "rationale": "Rule 12-2-12 turns on whether the rusher stuffed or drove the passer down, and the quarterback and rusher are physically hidden behind other players throughout the contact. No rule can be established from this observation."
+    },
+    {
+      "id": "football-roughing-passer-032",
+      "sport": "football",
+      "observation": "The quarterback throws from the pocket and the ball is well downfield when the edge rusher reaches him. The rusher grabs him around the chest, picks him up off his feet and slams him onto the turf, landing on top of him. The ball had left the quarterback's hand a full second before the contact began. The rusher makes no attempt to break his own fall or to avoid landing on the quarterback.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 12, Section 2, Article 12 :: roughing-the-passer"
+      ],
+      "difficulty": "easy",
+      "tag": "roughing-passer",
+      "rationale": "Ruling mode (no call on the field). Rule 12-2-12 prohibits stuffing the passer into the ground or unnecessarily wrestling or driving him down. A foul occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "football-occluded-contact-033",
+      "sport": "football",
+      "observation": "The receiver goes up for a ball in traffic and a defender arrives at the same moment. From this camera angle the defender's body is directly between the lens and the receiver's head and shoulders at the instant of the collision. Both players fall to the turf and the receiver stays down holding his head. The point of contact is not visible in any frame of the clip.",
+      "originalCall": null,
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-contact",
+      "rationale": "Ruling mode (no call on the field). Whether contact was to the head or neck area, and with what body part, is physically blocked from view for the whole collision, so neither Rule 12-2-9 nor the defenseless-player provision can be applied and no ruling can be established."
+    },
+    {
+      "id": "football-intentional-grounding-034",
+      "sport": "football",
+      "observation": "The quarterback drops back and stays between his own tackles as the pocket collapses around him. With a rusher's arms around his waist and about to bring him down, he flings the ball forward into the turf about three yards in front of his own feet. The nearest eligible receiver from either team is more than fifteen yards away, running toward the opposite sideline. No receiver is moving toward the spot where the ball lands.",
+      "originalCall": "intentional grounding",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 2, Article 1 :: intentional-grounding"
+      ],
+      "difficulty": "medium",
+      "tag": "intentional-grounding",
+      "rationale": "Rule 8-2-1 makes it intentional grounding when a passer facing an imminent loss of yardage because of pressure throws a forward pass without a realistic chance of completion. Both elements are present, so the flag was correct."
+    },
+    {
+      "id": "football-intentional-grounding-035",
+      "sport": "football",
+      "observation": "The quarterback is flushed off his spot and, with a rusher closing on him, throws hard toward the right flat. His receiver is running toward that spot and dives forward with both hands extended as the ball arrives. The ball skips off the turf about a yard in front of the receiver's outstretched hands. Two defenders are within five yards of the receiver as the ball comes down.",
+      "originalCall": "intentional grounding",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 8, Section 2, Article 1 :: intentional-grounding"
+      ],
+      "difficulty": "hard",
+      "tag": "intentional-grounding",
+      "rationale": "Rule 8-2-1 requires a pass thrown without a realistic chance of completion. The ball was thrown to a receiver in the area who dived and nearly reached it, so there was a realistic chance of completion and the flag was wrong."
+    },
+    {
+      "id": "football-occluded-ball-position-036",
+      "sport": "football",
+      "observation": "The quarterback is pressured from his left and throws the ball forward toward the right sideline, where it lands on the turf without being touched. The camera stays tight on the quarterback and the rushers and pans only after the ball has landed. No receiver from either team is visible in the frame at any point on that side of the field. Whether anyone was running toward the spot where the ball came down is off-screen.",
+      "originalCall": null,
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-ball-position",
+      "rationale": "Ruling mode (no call on the field). Rule 8-2-1 turns on whether the pass had a realistic chance of completion, which depends on where the receivers were, and that part of the field is off-screen for the entire clip. No ruling can be established."
+    },
+    {
+      "id": "football-occluded-contact-037",
+      "sport": "football",
+      "observation": "The receiver and the cornerback run downfield together on a deep route and the ball is thrown toward them. As the ball comes down, two other players cross directly between the camera and the pair and block the view for roughly a second. When the view clears the receiver is on the ground and the ball is bouncing away. Nothing in the clip shows whether the defender contacted the receiver or whether the receiver's own feet tangled.",
+      "originalCall": "pass interference, defense",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-contact",
+      "rationale": "Rule 8-5-2 requires an act that significantly hinders the receiver's opportunity to catch, and the contact itself is physically blocked from view. No rule can be established from this observation."
+    },
+    {
+      "id": "football-occluded-ball-position-038",
+      "sport": "football",
+      "observation": "The running back dives forward from the one-yard line into a pile of six players at the goal line. His arms and the ball go under the pile and are hidden by the bodies of two defenders and his own lineman. The pile stays stacked for several seconds before the players are pulled apart. At no point is the ball visible in relation to the goal line.",
+      "originalCall": "touchdown",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-ball-position",
+      "rationale": "Rule 11-3-1 requires the ball to have reached the plane of the goal line, and the ball is physically hidden inside the pile for the whole play. No rule can be established from this observation."
+    },
+    {
+      "id": "football-occluded-catch-039",
+      "sport": "football",
+      "observation": "The receiver dives for a low pass near the sideline and the defender lands on top of him at the same instant. The ball and both of the receiver's hands are underneath the two bodies as they hit the turf. The players roll once and the receiver comes up holding the ball above his head. No frame shows the ball at the moment of ground contact.",
+      "originalCall": "catch — pass complete",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-catch",
+      "rationale": "Rule 8-1-4 requires the player to maintain control through his initial contact with the ground, and the ball is physically hidden under both players at exactly that instant. No rule can be established from this observation."
+    },
+    {
+      "id": "football-occluded-ball-position-040",
+      "sport": "football",
+      "observation": "The ball carrier is wrapped up at the goal line and reaches the ball out toward the pylon as he falls. A defender's body passes between the camera and the ball exactly as he extends it. The camera is positioned directly behind the play and level with the ground. The relationship between the ball and the goal line is not visible in any frame.",
+      "originalCall": null,
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-ball-position",
+      "rationale": "Ruling mode (no call on the field). Rule 11-3-1 turns on whether the ball reached the plane of the goal line, which is blocked from view by a defender and unresolvable from a camera angle level with the plane. No ruling can be established."
+    }
+  ]
+}

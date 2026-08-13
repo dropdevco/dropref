@@ -1,0 +1,510 @@
+{
+  "sport": "lacrosse",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "lacrosse-slashing-001",
+      "sport": "lacrosse",
+      "observation": "The defender trails the ball carrier up the alley and takes a two-handed overhead swing with his crosse. The shaft comes down across the top of the ball carrier's helmet with a loud crack and the carrier's head is driven forward. The carrier drops to one knee and the ball comes out of his stick. The defender's follow-through carries the crosse on past the carrier's shoulder.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 7 :: slashing"
+      ],
+      "difficulty": "easy",
+      "tag": "slashing",
+      "rationale": "Ruling mode (no call on the field). Rule 5-7 defines slashing as swinging the crosse at an opponent's body with deliberate viciousness or reckless abandon, and a strike anywhere other than the gloved hand can be ruled a slash. A foul occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "lacrosse-legal-stick-check-002",
+      "sport": "lacrosse",
+      "observation": "The ball carrier drives from behind the goal with the ball in the head of his crosse and both hands on the shaft. The defender, running alongside him, delivers one short controlled poke with the head of his crosse onto the top of the carrier's gloved bottom hand. The stick contacts only the glove and the carrier's own shaft; there is no windup and no follow-through past the hand. The carrier keeps possession and continues toward the goal.",
+      "originalCall": "slash",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 7 (Exceptions) :: legal-stick-checks"
+      ],
+      "difficulty": "hard",
+      "tag": "legal-stick-check",
+      "rationale": "Rule 5-7 (Exceptions) states that a strike by the crosse on the gloved hand of an opponent who is in possession of the ball is not a slash. The flag was wrong."
+    },
+    {
+      "id": "lacrosse-legal-stick-check-003",
+      "sport": "lacrosse",
+      "observation": "The ball carrier cradles the ball with his top hand near the throat of his crosse. The defender winds his own crosse back past his shoulder and swings it down in one full motion. The shaft lands on the carrier's forearm about a hand's width above the top of his glove cuff, not on the glove itself. The carrier's arm drops and he loses the ball.",
+      "originalCall": "slash",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 7 :: slashing"
+      ],
+      "difficulty": "hard",
+      "tag": "legal-stick-check",
+      "rationale": "Rule 5-7 provides that a strike on the arm, chest, back or anywhere other than the gloved hand holding the stick can be ruled a slash, and a full windup swing shows reckless abandon. The contact landed above the glove cuff on the forearm, so the flag was correct."
+    },
+    {
+      "id": "lacrosse-legal-stick-check-004",
+      "sport": "lacrosse",
+      "observation": "A loose ball sits on the turf and two opponents converge on it from opposite sides, both about two yards away. As the near player lowers his crosse to scoop, the defender chops downward once and his stick head strikes the scooping player's gloved hands on the shaft. There is no contact with the arms, shoulders or helmet. The ball squirts free and a third player picks it up.",
+      "originalCall": null,
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 7 (Exceptions) :: legal-stick-checks"
+      ],
+      "difficulty": "medium",
+      "tag": "legal-stick-check",
+      "rationale": "Ruling mode (no call on the field). Rule 5-7 (Exceptions) states that a strike on the gloved hands of an opponent who is within 5 yards of a loose ball is not a slash. The correct ruling is no foul (FAIR_CALL = nothing to penalise)."
+    },
+    {
+      "id": "lacrosse-slashing-005",
+      "sport": "lacrosse",
+      "observation": "The play has moved up the field and one player trails the ball carrier by about ten yards, with no loose ball anywhere near him. A defender running behind him swings his crosse one-handed in a wide arc and strikes him across the middle of the back. The struck player arches forward and stumbles. The defender makes no attempt to play the ball at any point.",
+      "originalCall": "slash",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 7 :: slashing"
+      ],
+      "difficulty": "easy",
+      "tag": "slashing",
+      "rationale": "Rule 5-7 defines slashing as swinging the crosse at an opponent's body with deliberate viciousness or reckless abandon and expressly includes a strike on the back. The flag was correct."
+    },
+    {
+      "id": "lacrosse-slashing-006",
+      "sport": "lacrosse",
+      "observation": "The ball carrier holds the ball in his crosse out on the wing. The defender delivers a short controlled check with his stick head onto the head of the carrier's crosse and the two sticks clack together. The defender's stick does not touch the carrier's hands, arms or body at any point. The ball stays in the carrier's crosse and he passes it upfield.",
+      "originalCall": "slash",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 7 :: slashing"
+      ],
+      "difficulty": "medium",
+      "tag": "slashing",
+      "rationale": "Rule 5-7 requires a swing at the opponent's crosse or body with deliberate viciousness or reckless abandon. A single short controlled stick-on-stick check with no body contact meets neither element, so the flag was wrong."
+    },
+    {
+      "id": "lacrosse-illegal-body-check-007",
+      "sport": "lacrosse",
+      "observation": "A loose ball rolls toward the sideline and two players sprint after it, with the nearest player still about fifteen yards from the ball. A defender comes across from the back side and drives his shoulder into the middle of that player's back while the player's eyes are on the ball. The struck player is knocked forward off his feet and onto the turf. The ball is still fifteen yards away when the contact happens.",
+      "originalCall": "illegal body check",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 3 :: illegal-body-check"
+      ],
+      "difficulty": "easy",
+      "tag": "illegal-body-check",
+      "rationale": "Rule 5-3 makes it an illegal body check to check an opponent who is not in possession of the ball and not within 5 yards of a loose ball, and also any check where the contact is from the rear. Both applied, so the flag was correct."
+    },
+    {
+      "id": "lacrosse-illegal-body-check-008",
+      "sport": "lacrosse",
+      "observation": "The ball carrier catches a pass on the wing and turns to face the goal. The defender steps into him and drives upward with his shoulder, striking the carrier under the chin on the front of his helmet. The carrier's head snaps back and he falls onto his back. The contact is above the shoulder line and no other part of the defender's body touches him.",
+      "originalCall": "illegal body check",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 3 :: illegal-body-check"
+      ],
+      "difficulty": "easy",
+      "tag": "illegal-body-check",
+      "rationale": "Rule 5-3 provides that a body check is illegal where the contact is above the shoulders. The flag was correct."
+    },
+    {
+      "id": "lacrosse-illegal-body-check-009",
+      "sport": "lacrosse",
+      "observation": "The ball carrier drives down the alley with the ball in his crosse. The defender squares up in front of him and meets him with a shoulder-to-shoulder check, both hands on his own stick and his feet on the ground. The contact lands on the carrier's upper chest and shoulder, below the shoulder line and above the waist, and comes from the front. The carrier is knocked a step sideways and keeps the ball.",
+      "originalCall": null,
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 3 :: illegal-body-check"
+      ],
+      "difficulty": "medium",
+      "tag": "illegal-body-check",
+      "rationale": "Ruling mode (no call on the field). Rule 5-3 makes a body check illegal only against a player not in possession and not within 5 yards of a loose ball, or where contact is from the rear, at or below the waist, or above the shoulders. None applies to a front check on the ball carrier between shoulders and waist, so the correct ruling is no foul (FAIR_CALL = nothing to penalise)."
+    },
+    {
+      "id": "lacrosse-illegal-body-check-010",
+      "sport": "lacrosse",
+      "observation": "A loose ball sits on the turf and two opponents converge on it. When both players are about two yards from the ball, the defender steps in front and meets the other player chest to chest with a check from the front. The contact is squarely between the shoulders and the waist and the defender's feet stay on the ground. The struck player is stood up and the defender's teammate scoops the ball.",
+      "originalCall": "illegal body check",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 3 :: illegal-body-check"
+      ],
+      "difficulty": "easy",
+      "tag": "illegal-body-check",
+      "rationale": "Rule 5-3 makes body-checking illegal against a player who is not within 5 yards of a loose ball; here both players were about two yards from it and the contact came from the front between shoulders and waist. The check was legal, so the flag was wrong."
+    },
+    {
+      "id": "lacrosse-defenseless-body-check-011",
+      "sport": "lacrosse",
+      "observation": "The attacker winds up and releases a shot from about fifteen yards out, following through with his shoulders turned three-quarters away from the middle of the field and his weight on his front foot. A second defender arrives from the shooter's blind side after the ball has left the crosse and drives his shoulder into the shooter's upper back. The shooter never sees him coming and is knocked off his feet onto his chest. The contact lands squarely on the back, below the shoulder line.",
+      "originalCall": "illegal body check",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 3 :: illegal-body-check"
+      ],
+      "difficulty": "hard",
+      "tag": "defenseless-body-check",
+      "rationale": "Rule 5-3 makes a body check illegal where the contact is from the rear, and also against a player who is not in possession and not within 5 yards of a loose ball. The shooter had released the ball, which was fifteen yards away, and was struck in the back from his blind side, so the flag was correct."
+    },
+    {
+      "id": "lacrosse-defenseless-body-check-012",
+      "sport": "lacrosse",
+      "observation": "The ball carrier catches a feed and turns upfield with the ball in his crosse, facing the defender who is squared up two yards in front of him. The defender sets his feet and meets him with a shoulder into the front of the chest, below the shoulder line. The carrier is looking directly at the defender at the moment of contact. The impact is heavy and the carrier is knocked backwards onto the turf, but the contact stays chest to chest and from the front.",
+      "originalCall": "illegal body check",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 3 :: illegal-body-check"
+      ],
+      "difficulty": "hard",
+      "tag": "defenseless-body-check",
+      "rationale": "Rule 5-3 makes a check illegal only against a player not in possession or not within 5 yards of a loose ball, or when contact is from the rear, at or below the waist, or above the shoulders. The carrier had possession and was struck from the front in the chest, so the flag was wrong."
+    },
+    {
+      "id": "lacrosse-crease-violation-013",
+      "sport": "lacrosse",
+      "observation": "The attacker steps in from the side of the goal and shoots from close range. As he releases, his trailing left foot comes down inside the painted circle around the goal, with the whole boot inside the line. The ball goes into the net. He then steps back out of the circle.",
+      "originalCall": "crease violation — no goal",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 20 :: crease-violation-offense"
+      ],
+      "difficulty": "easy",
+      "tag": "crease-violation",
+      "rationale": "Rule 4-20 provides that an attacking player shall not be in the opponent's goal-crease cylinder at any time, and that if his body touches the crease play is suspended and possession awarded to the defence. The call was correct."
+    },
+    {
+      "id": "lacrosse-crease-momentum-after-shot-014",
+      "sport": "lacrosse",
+      "observation": "The attacker takes off from outside the painted circle, leaves his feet and stretches toward the goal mouth. The ball leaves his crosse while he is still in the air and outside the circle, and it crosses the goal line into the net. His body then lands and his momentum carries his knees and chest down inside the crease. He slides past the goalkeeper without touching him at any point.",
+      "originalCall": "crease violation — goal disallowed",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 21 :: goal-scored-dive-rule"
+      ],
+      "difficulty": "hard",
+      "tag": "crease-momentum-after-shot",
+      "rationale": "Rule 4-21 provides that where an offensive player dives or jumps and his momentum carries him into the crease, the goal counts if the ball enters the goal before any contact with the crease and he does not contact the goalkeeper. Both conditions were met, so disallowing the goal was wrong."
+    },
+    {
+      "id": "lacrosse-crease-momentum-after-shot-015",
+      "sport": "lacrosse",
+      "observation": "The attacker dives toward the goal mouth from the left side. His leading knee comes down and touches the painted circle while the ball is still in the head of his crosse. He releases the shot after that first contact with the ground and the ball goes into the net. He slides on past the near post.",
+      "originalCall": "crease violation — no goal",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 21 :: goal-scored-dive-rule"
+      ],
+      "difficulty": "hard",
+      "tag": "crease-momentum-after-shot",
+      "rationale": "Rule 4-21 allows the goal only if the ball enters the goal before any contact with the crease. Here the knee touched the crease before the ball was released, so disallowing the goal was correct."
+    },
+    {
+      "id": "lacrosse-crease-violation-016",
+      "sport": "lacrosse",
+      "observation": "The attacker shoots from close range just outside the goal-crease circle. Both of his feet stay on the turf outside the painted line and his body does not lean over it. His crosse follows through at chest height and stays outside the vertical line above the paint. The ball goes into the net and he backs away.",
+      "originalCall": "crease violation — no goal",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 20 :: crease-violation-offense"
+      ],
+      "difficulty": "medium",
+      "tag": "crease-violation",
+      "rationale": "Rule 4-20 is violated only when the attacking player's body or stick touches the crease, the goal line or the airspace above it. Neither his body nor his stick did, so disallowing the goal was wrong."
+    },
+    {
+      "id": "lacrosse-offside-017",
+      "sport": "lacrosse",
+      "observation": "The defence clears the ball up the field and a midfielder carries it over the centerline. At the moment the ball crosses, seven players in that team's jerseys are between the centerline and the far end line. The remaining three are still behind the centerline in their own half. One midfielder is jogging back toward the line but has not reached it.",
+      "originalCall": "offside",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 10 :: offside"
+      ],
+      "difficulty": "easy",
+      "tag": "offside",
+      "rationale": "Rule 4-10 makes a team offside when it has more than six players in its offensive half of the field. Seven were, so the call was correct."
+    },
+    {
+      "id": "lacrosse-offside-018",
+      "sport": "lacrosse",
+      "observation": "The team carries the ball across the centerline on a fast break. At the moment the ball crosses the line, six players in that team's jerseys are in the attacking half between the centerline and the end line. The other four players are all clearly behind the centerline in the defensive half. No player crosses the line during the sequence.",
+      "originalCall": "offside",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 10 :: offside"
+      ],
+      "difficulty": "easy",
+      "tag": "offside",
+      "rationale": "Rule 4-10 requires more than six players in the offensive half, or more than seven in the defensive half. With exactly six and four the team was onside, so the call was wrong."
+    },
+    {
+      "id": "lacrosse-offside-019",
+      "sport": "lacrosse",
+      "observation": "The ball is being carried up the right side toward the attacking half. A substitute steps onto the field and runs across the centerline into the attacking half while six of his teammates are already there and the ball is still in play. For roughly two seconds there are seven players from that team between the centerline and the end line. No teammate goes back across the line during that time.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 10 :: offside"
+      ],
+      "difficulty": "medium",
+      "tag": "offside",
+      "rationale": "Ruling mode (no call on the field). Rule 4-10 makes a team offside when more than six of its players are in its offensive half; seven were for about two seconds. An offence occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "lacrosse-warding-020",
+      "sport": "lacrosse",
+      "observation": "The ball carrier drives toward the goal with the ball in his crosse held in his right hand. The defender extends his crosse to check him, and the carrier takes his left hand off his own shaft, grabs the defender's crosse near the head and pushes it downward and away. He holds the defender's stick down for about a stride while he continues toward the goal. His free hand stays on the defender's crosse throughout.",
+      "originalCall": "warding",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 6, Section 11 :: warding-off"
+      ],
+      "difficulty": "easy",
+      "tag": "warding",
+      "rationale": "Rule 6-11 forbids a player in possession from using his free hand or arm to hold, push or control the direction of the movement of the crosse of the player applying the check. The call was correct."
+    },
+    {
+      "id": "lacrosse-natural-running-motion-021",
+      "sport": "lacrosse",
+      "observation": "The ball carrier sprints up the middle carrying his crosse in his right hand with the ball in the head. His left arm swings forward and back in time with his stride, staying close to the line of his body. The defender reaches in with his crosse and the shaft makes contact with the carrier's left arm as it swings forward. The carrier's arm continues its normal swing and he does not extend it toward the defender's stick, close his hand on it, or change its path.",
+      "originalCall": "warding",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 6, Section 11 :: warding-off"
+      ],
+      "difficulty": "hard",
+      "tag": "natural-running-motion",
+      "rationale": "Rule 6-11 requires the player in possession to use his free hand or arm to hold, push or control the direction of the movement of the checking crosse. A free arm swinging in a natural running motion that the defender's stick runs into does none of those, so the call was wrong."
+    },
+    {
+      "id": "lacrosse-warding-022",
+      "sport": "lacrosse",
+      "observation": "The ball carrier is being pressured from his left as he drives toward the goal. He bends his left arm across the front of his body, catches the defender's crosse against his own hip and holds it pinned there for a full stride. The defender's stick is dragged along with him and cannot be pulled free. The carrier then releases it and shoots.",
+      "originalCall": "warding",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 6, Section 11 :: warding-off"
+      ],
+      "difficulty": "medium",
+      "tag": "warding",
+      "rationale": "Rule 6-11 forbids the player in possession from using his free arm or any other part of his body to hold or control the direction of the movement of the crosse of the player applying the check. Pinning the stick against his hip is exactly that, so the call was correct."
+    },
+    {
+      "id": "lacrosse-cross-check-023",
+      "sport": "lacrosse",
+      "observation": "The attacker sets up with his back to the goal about eight yards out and begins to back his defender down. The defender places both hands on his own shaft, spread about shoulder width apart, and thrusts the section of handle between his hands into the attacker's upper back. The attacker is jolted forward two steps. The defender's stick head and butt end are both clear of the attacker's body; only the segment between the hands makes contact.",
+      "originalCall": "cross-check",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 4 :: cross-check"
+      ],
+      "difficulty": "hard",
+      "tag": "cross-check",
+      "rationale": "Rule 5-4 forbids checking an opponent with that part of the handle of the crosse that is between the player's hands, thrust away from the body. The call was correct."
+    },
+    {
+      "id": "lacrosse-legal-push-hands-together-024",
+      "sport": "lacrosse",
+      "observation": "The attacker backs in toward the goal and the defender works to hold his position. The defender's two gloves are touching each other on the shaft near the butt end, and he pushes with the flat of both gloves and his forearms into the attacker's side. No part of the shaft between his hands touches the attacker, and his arms stay bent and close to his own chest rather than thrusting out. The attacker is moved about a yard toward the sideline.",
+      "originalCall": "cross-check",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 4 :: cross-check"
+      ],
+      "difficulty": "hard",
+      "tag": "legal-push-hands-together",
+      "rationale": "Rule 5-4 defines a cross-check as a check with the part of the handle between the player's hands, either thrust away from the body or held extended from the body. With the hands together and no shaft segment contacting the opponent, neither element is met, so the call was wrong."
+    },
+    {
+      "id": "lacrosse-cross-check-025",
+      "sport": "lacrosse",
+      "observation": "The attacker cuts across the top of the box toward a feed. The defender slides with him, spreads his hands wide on the shaft and jolts the handle between them into the attacker's upper back as he cuts. The attacker is knocked off his line and stumbles. The defender's arms extend away from his body as he delivers the contact.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 4 :: cross-check"
+      ],
+      "difficulty": "medium",
+      "tag": "cross-check",
+      "rationale": "Ruling mode (no call on the field). Rule 5-4 forbids a check with the part of the handle between the player's hands, thrust away from the body. An offence occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "lacrosse-holding-026",
+      "sport": "lacrosse",
+      "observation": "The ball carrier stops behind the goal and looks to feed a cutter. The defender lays the shaft of his crosse across the head of the carrier's stick and presses it down against the carrier's chest. He keeps the carrier's crosse pinned there for about three seconds so it cannot be raised to throw. The carrier turns his body but cannot free the stick.",
+      "originalCall": "holding",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 6, Section 5 :: holding"
+      ],
+      "difficulty": "easy",
+      "tag": "holding",
+      "rationale": "Rule 6-5 provides that a player shall not impede the movement of an opponent or his crosse, and may not hold an opponent with his crosse. The call was correct."
+    },
+    {
+      "id": "lacrosse-occluded-stick-contact-027",
+      "sport": "lacrosse",
+      "observation": "The ball carrier is pressured from behind the goal and the defender's crosse comes across his body. The carrier's own torso is between the camera and the point where the two sticks meet, and the defender's stick head is physically blocked from view for the whole of the contact. The carrier steps forward and passes the ball a moment later. No frame shows whether the defender's crosse was pinning the carrier's stick or merely resting alongside it.",
+      "originalCall": "holding",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-stick-contact",
+      "rationale": "Rule 6-5 turns on whether the defender impeded the opponent or his crosse, and the contact point is physically blocked from view throughout. No rule can be established from this observation."
+    },
+    {
+      "id": "lacrosse-holding-028",
+      "sport": "lacrosse",
+      "observation": "A crosse is knocked out of a player's hands and lands on the turf. As that player bends to pick it up, an opponent places his foot on the shaft and stands on it. The player pulls upward twice and cannot lift the stick clear of the ground. The opponent keeps his weight on it for about three seconds while play continues around them.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 6, Section 5 :: holding"
+      ],
+      "difficulty": "easy",
+      "tag": "holding",
+      "rationale": "Ruling mode (no call on the field). Rule 6-5 expressly forbids stepping on the opponent's crosse and impeding the movement of an opponent or his crosse. An offence occurred that should have been flagged (BAD_CALL)."
+    },
+    {
+      "id": "lacrosse-pushing-029",
+      "sport": "lacrosse",
+      "observation": "A loose ball rolls toward the end line and two opponents chase it side by side. The trailing player puts both gloves on the back of the other player's shoulder blades and shoves him forward. The shoved player is driven off his line and stumbles past the ball. The contact is squarely on the back with both hands.",
+      "originalCall": "pushing",
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 6, Section 9 :: pushing"
+      ],
+      "difficulty": "easy",
+      "tag": "pushing",
+      "rationale": "Rule 6-9 provides that a player shall not thrust or shove an opponent from the rear, and defines a push as exerting pressure to force an opponent in a direction other than his intended direction. The call was correct."
+    },
+    {
+      "id": "lacrosse-occluded-push-030",
+      "sport": "lacrosse",
+      "observation": "Two players contest position in front of the goal with their bodies overlapping from the camera's viewpoint. One of them shoves the other and the shoved player stumbles two steps forward. The pushing player's hands are physically hidden behind the other player's torso from this angle for the whole of the contact. Nothing in the clip shows whether the hands landed on the back or on the chest.",
+      "originalCall": "pushing from the rear",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-push",
+      "rationale": "Rule 6-9 turns on whether the shove came from the rear, and the pusher's hands are blocked from view throughout the contact. No rule can be established from this observation."
+    },
+    {
+      "id": "lacrosse-occluded-body-contact-031",
+      "sport": "lacrosse",
+      "observation": "An offensive player stands still to set a screen at the top of the box and a defender runs toward him. A third player crosses directly between the camera and the two of them at the instant they meet, blocking the view for about a second. When the view clears the screener is on the turf. The clip does not show which part of the defender's body made contact, or where on the screener it landed.",
+      "originalCall": "unnecessary roughness",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-body-contact",
+      "rationale": "Rule 5-11 turns on whether the contact was deliberate and excessively violent against a player who had established a screening position, and the collision itself is physically blocked from view. No rule can be established from this observation."
+    },
+    {
+      "id": "lacrosse-unnecessary-roughness-032",
+      "sport": "lacrosse",
+      "observation": "An offensive player plants his feet and sets a screen at the top of the box. The defender running through the screen meets him shoulder to shoulder, with his feet on the ground and his arms in to his own chest. The screener is moved back about a step and stays on his feet. There is no windup, no launch and no follow-through past the point of contact.",
+      "originalCall": "unnecessary roughness",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 11 :: unnecessary-roughness"
+      ],
+      "difficulty": "medium",
+      "tag": "unnecessary-roughness",
+      "rationale": "Rule 5-11 requires an excessively violent infraction, or deliberate and excessively violent contact against a player who has established a screening position. Controlled shoulder-to-shoulder contact that moves the screener a step is neither, so the call was wrong."
+    },
+    {
+      "id": "lacrosse-occluded-crease-033",
+      "sport": "lacrosse",
+      "observation": "An attacker drives to the goal mouth and the goalkeeper steps out to meet him as the shot is taken. The goal frame and the goalkeeper's own body are between the camera and the point where the attacker's crosse ends up. Both players end up on the turf beside the post. No frame shows whether the attacker's stick touched the goalkeeper or only the ball, or where the goalkeeper was relative to the crease line.",
+      "originalCall": "goalkeeper interference",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-crease",
+      "rationale": "Rule 4-18 turns on whether the attacking player interfered with the goalkeeper or his crosse while the goalkeeper was within the crease, and both the point of contact and the goalkeeper's position relative to the crease line are blocked from view. No rule can be established from this observation."
+    },
+    {
+      "id": "lacrosse-goalkeeper-interference-034",
+      "sport": "lacrosse",
+      "observation": "The goalkeeper makes a save and carries the ball out of the painted circle, with both feet on the turf outside the line and his whole body beyond it. An attacker closes and delivers a stick check onto the head of the goalkeeper's crosse. The check knocks the ball loose and it rolls toward the corner. The goalkeeper does not return to the circle before the check.",
+      "originalCall": "goalkeeper interference",
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 18 :: goalkeeper-interference"
+      ],
+      "difficulty": "medium",
+      "tag": "goalkeeper-interference",
+      "rationale": "Rule 4-18 protects the goalkeeper only when he is within the crease and expressly provides that the goalkeeper's crosse may be checked when outside the crease. The call was wrong."
+    },
+    {
+      "id": "lacrosse-crease-violation-035",
+      "sport": "lacrosse",
+      "observation": "The attacker takes a feed at the side of the goal and steps in to shoot. As he plants and releases, the toe of his front boot comes down on the painted crease line with part of the boot inside it. The ball goes into the net. He then pushes off and steps back out.",
+      "originalCall": null,
+      "expectedVerdict": "BAD_CALL",
+      "expectedRuleRefs": [
+        "Rule 4, Section 20 :: crease-violation-offense"
+      ],
+      "difficulty": "easy",
+      "tag": "crease-violation",
+      "rationale": "Ruling mode (no call on the field). Rule 4-20 provides that an attacking player shall not be in the goal-crease cylinder, and that if his body touches the crease play is suspended and possession awarded to the defence. An offence occurred (BAD_CALL)."
+    },
+    {
+      "id": "lacrosse-legal-push-hands-together-036",
+      "sport": "lacrosse",
+      "observation": "The attacker holds his position on the wing with the ball in his crosse. The defender keeps his two gloves touching each other low on the shaft and leans into the attacker's side with his forearms and the flat of both gloves, arms bent and tight to his own chest. The segment of shaft between his hands never touches the attacker. The attacker is moved half a step and keeps possession.",
+      "originalCall": null,
+      "expectedVerdict": "FAIR_CALL",
+      "expectedRuleRefs": [
+        "Rule 5, Section 4 :: cross-check"
+      ],
+      "difficulty": "medium",
+      "tag": "legal-push-hands-together",
+      "rationale": "Ruling mode (no call on the field). Rule 5-4 defines a cross-check as a check with the part of the handle between the player's hands, thrust away from the body or held extended from it. With the hands together and no shaft contact on the opponent, the correct ruling is no foul (FAIR_CALL = nothing to penalise)."
+    },
+    {
+      "id": "lacrosse-occluded-stick-contact-037",
+      "sport": "lacrosse",
+      "observation": "The ball carrier is double-teamed at the top of the box and both defenders swing their sticks toward him at the same time. The bodies of the two defenders are between the camera and the carrier's arms and hands at the moment the checks land. The carrier drops the ball and shakes his left hand afterwards. No frame shows where either stick made contact.",
+      "originalCall": "slash",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-stick-contact",
+      "rationale": "Rule 5-7 turns on where the strike landed, since a strike on the gloved hand is expressly not a slash while a strike on the arm can be. The contact point is physically blocked from view, so no rule can be established from this observation."
+    },
+    {
+      "id": "lacrosse-occluded-crease-038",
+      "sport": "lacrosse",
+      "observation": "The attacker shoots from close range at the side of the goal and the ball goes in. The goalkeeper and a defender are standing between the camera and the attacker's feet as he releases. The painted crease line in front of him is not visible in any frame. Whether his front foot came down inside or outside the line cannot be seen.",
+      "originalCall": "crease violation — no goal",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-crease",
+      "rationale": "Rule 4-20 turns on whether the attacking player's body touched the crease, and both his feet and the crease line are blocked from view at the decisive moment. No rule can be established from this observation."
+    },
+    {
+      "id": "lacrosse-occluded-body-contact-039",
+      "sport": "lacrosse",
+      "observation": "Two players collide behind the goal and both go down to the turf. The camera is low on the near sideline and the goal frame and the crowd of players around the crease block the view of the collision itself. Only the two players getting back to their feet afterwards is visible. Nothing in the clip shows the direction of the check, the point of contact, or where the ball was.",
+      "originalCall": "illegal body check",
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-body-contact",
+      "rationale": "Rule 5-3 turns on the direction and height of the contact and on whether the struck player had possession or was within 5 yards of a loose ball, none of which is visible because the collision is blocked from view. No rule can be established from this observation."
+    },
+    {
+      "id": "lacrosse-occluded-warding-040",
+      "sport": "lacrosse",
+      "observation": "The ball carrier drives to the goal with a defender checking him from the left. From this camera angle the carrier's torso hides his free arm completely for the two seconds of the drive. The defender's crosse is deflected downward at one point. Whether the carrier's free hand touched the defender's stick, or the stick was simply knocked down by the carrier's shoulder, is not visible in any frame.",
+      "originalCall": null,
+      "expectedVerdict": "INCONCLUSIVE",
+      "expectedRuleRefs": [],
+      "difficulty": "medium",
+      "tag": "occluded-warding",
+      "rationale": "Ruling mode (no call on the field). Rule 6-11 turns on whether the player in possession used his free hand or arm to hold, push or control the check, and the free arm is physically hidden throughout. No ruling can be established."
+    }
+  ]
+}

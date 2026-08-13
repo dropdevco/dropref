@@ -24,7 +24,9 @@
         "arm",
         "helmet",
         "reckless abandon",
-        "vicious"
+        "vicious",
+        "foul",
+        "personal foul"
       ],
       "callTypes": [
         "slash"
@@ -44,7 +46,9 @@
         "legal check",
         "gloved hand",
         "possession",
-        "stick on stick"
+        "stick on stick",
+        "foul",
+        "personal foul"
       ],
       "callTypes": [
         "slash"
@@ -65,7 +69,9 @@
         "from the rear",
         "blindside",
         "above shoulders",
-        "head contact"
+        "head contact",
+        "foul",
+        "personal foul"
       ],
       "callTypes": [
         "illegal body check"
@@ -149,7 +155,9 @@
         "free hand",
         "push",
         "stiff arm",
-        "control direction"
+        "control direction",
+        "foul",
+        "technical foul"
       ],
       "callTypes": [
         "warding"
@@ -170,7 +178,9 @@
         "impede",
         "grab",
         "pin stick",
-        "step on stick"
+        "step on stick",
+        "foul",
+        "technical foul"
       ],
       "callTypes": [
         "illegal body check"
@@ -190,7 +200,9 @@
         "handle",
         "between hands",
         "thrust",
-        "shaft check"
+        "shaft check",
+        "foul",
+        "personal foul"
       ],
       "callTypes": [
         "illegal body check"
@@ -211,7 +223,9 @@
         "excessive",
         "late hit",
         "screen",
-        "blindside"
+        "blindside",
+        "foul",
+        "personal foul"
       ],
       "callTypes": [
         "illegal body check"
@@ -251,7 +265,9 @@
         "pushing",
         "from the rear",
         "shove",
-        "in the back"
+        "in the back",
+        "foul",
+        "technical foul"
       ],
       "callTypes": [
         "illegal body check"

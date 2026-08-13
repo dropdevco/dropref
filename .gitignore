@@ -31,3 +31,6 @@ yarn-error.log*
 .vercel
 cv_service/venv/
 *.pt
+
+# eval harness output (generated, sometimes large)
+backend/eval/results/
