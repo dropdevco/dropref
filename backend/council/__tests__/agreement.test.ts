@@ -199,6 +199,70 @@ console.log('\nempty and degenerate input');
 }
 
 /* ---------------------------------------------------------------- */
+console.log('\ncoverage-aware consensus (a dead seat is not a silent one)');
+{
+  const three = [seat('FAIR_CALL', 0.8), seat('FAIR_CALL', 0.8), seat('FAIR_CALL', 0.8)];
+  const two = [seat('FAIR_CALL', 0.8), seat('FAIR_CALL', 0.8)];
+  const full = computeAgreement(three, undefined, 3);
+  const degraded = computeAgreement(two, undefined, 3);
+
+  eq('a full panel divides by the seats it has', full.consensusDenominator, 3);
+  eq('a degraded panel still divides by the panel we ASKED', degraded.consensusDenominator, 3);
+  close('3 of 3 agreeing is unanimous', full.consensusRatio, 1);
+  close('2 of 3 agreeing is NOT unanimous', degraded.consensusRatio, 2 / 3);
+  check(
+    'a degraded panel scores STRICTLY below a full one',
+    accuracyScore(degraded) < accuracyScore(full),
+    accuracyScore(degraded) + ' vs ' + accuracyScore(full),
+  );
+  check(
+    'a degraded panel does not clear a 0.75 consensus gate',
+    degraded.consensusRatio < 0.75,
+    String(degraded.consensusRatio),
+  );
+  close('no expected size given, divide by what answered', computeAgreement(two).consensusRatio, 1);
+}
+
+/* ---------------------------------------------------------------- */
+console.log('\nthe chair does not vote in the tally that grades it');
+{
+  const panel = [seat('FAIR_CALL', 0.7), seat('FAIR_CALL', 0.7), seat('BAD_CALL', 0.7)];
+  const chairVote = seat('BAD_CALL', 0.85);
+  const excluded = computeAgreement(panel, 'BAD_CALL', 3);
+  const included = computeAgreement([...panel, chairVote], 'BAD_CALL', 3);
+
+  close('only the seats are counted', excluded.consensusRatio, 1 / 3);
+  close('the chair is not one of the seats', excluded.meanProbability, 0.7);
+  check(
+    'letting the chair vote would inflate its own score',
+    accuracyScore(included) > accuracyScore(excluded),
+    accuracyScore(included) + ' vs ' + accuracyScore(excluded),
+  );
+  eq('agreementFocus is the verdict being graded', excluded.agreementFocus, 'BAD_CALL');
+  eq('the raw tally stays honest', excluded.distribution.FAIR_CALL, 2);
+}
+
+/* ---------------------------------------------------------------- */
+console.log('\nweight ordering (the design claim, not just the arithmetic)');
+{
+  check(
+    'consensus outweighs self-reported probability',
+    ACCURACY_WEIGHTS.consensus > ACCURACY_WEIGHTS.probability,
+    ACCURACY_WEIGHTS.consensus + ' vs ' + ACCURACY_WEIGHTS.probability,
+  );
+  check(
+    'probability outweighs inverse entropy',
+    ACCURACY_WEIGHTS.probability > ACCURACY_WEIGHTS.entropy,
+    ACCURACY_WEIGHTS.probability + ' vs ' + ACCURACY_WEIGHTS.entropy,
+  );
+  check(
+    'inverse entropy outweighs citation agreement',
+    ACCURACY_WEIGHTS.entropy > ACCURACY_WEIGHTS.citation,
+    ACCURACY_WEIGHTS.entropy + ' vs ' + ACCURACY_WEIGHTS.citation,
+  );
+}
+
+/* ---------------------------------------------------------------- */
 console.log(
   `\n${passed} passed, ${failures.length} failed (${passed + failures.length} assertions)`,
 );

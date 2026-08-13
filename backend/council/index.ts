@@ -51,6 +51,23 @@ export class CouncilQuorumError extends Error {
   }
 }
 
+/**
+ * Union of the seats that failed in any round, first-seen order, deduplicated.
+ * A seat that dies in the panel AND in the debate is one broken seat, not two.
+ */
+function mergeFailedSeats(...lists: string[][]): string[] {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const list of lists) {
+    for (const id of list) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      merged.push(id);
+    }
+  }
+  return merged;
+}
+
 /** Both escalation gates must pass for the council to stop early. */
 function settled(m: AgreementMetrics, config: CouncilConfig): boolean {
   return (
@@ -173,7 +190,11 @@ export async function runCouncil(
     }
 
     const panelPositions = positionsFromOpinions(usable);
-    const panelMetrics = computeAgreement(panelPositions);
+    const panelMetrics = computeAgreement(
+      panelPositions,
+      undefined,
+      config.seats.length,
+    );
 
     if (settled(panelMetrics, config)) {
       return finish({
@@ -193,8 +214,17 @@ export async function runCouncil(
     const debate = await runDebate(input, config, usable, controller.signal);
     totalCalls += debate.totalCalls;
 
+    // A seat can survive the panel and die in the debate. `failedSeats` is the
+    // observability surface for exactly that, so it carries BOTH rounds'
+    // casualties; a seat that failed twice is still one entry.
+    const failedSeats = mergeFailedSeats(panel.failedSeats, debate.failedSeats);
+
     const debatePositions = positionsAfterDebate(usable, debate.statements);
-    const debateMetrics = computeAgreement(debatePositions);
+    const debateMetrics = computeAgreement(
+      debatePositions,
+      undefined,
+      config.seats.length,
+    );
 
     if (settled(debateMetrics, config)) {
       return finish({
@@ -204,37 +234,49 @@ export async function runCouncil(
         metrics: debateMetrics,
         opinions: panel.opinions,
         debate: debate.statements,
-        failedSeats: panel.failedSeats,
+        failedSeats,
         totalCalls,
         start,
       });
     }
 
     /* ---- Stage 3: chair ---- */
+    // The chair runs on its OWN deadline rather than whatever is left of the
+    // shared budget. Sharing one clock meant the panel and debate rounds could
+    // spend it all and abort the chair on precisely the contested cases the
+    // chair exists to settle — and since a dead chair falls back to the
+    // post-debate majority at `stage: 'debate'`, that was nearly invisible.
+    const chairController = new AbortController();
+    const chairBudget = config.chairTimeoutMs ?? config.timeoutMs;
+    const chairDeadline = setTimeout(() => chairController.abort(), chairBudget);
     try {
       const ruling = await runChair(
         input,
         config,
         usable,
         debate.statements,
-        controller.signal,
+        chairController.signal,
       );
+      clearTimeout(chairDeadline);
       totalCalls += ruling.calls;
 
       // Support for THE ANSWER, not for the modal verdict: the chair may have
       // overruled the panel, and the score has to reflect how alone it is.
-      const chairInclusive = computeAgreement(
-        [
-          ...debatePositions,
-          {
-            verdict: ruling.verdict,
-            selfProbability: ruling.selfProbability,
-            citedRuleRefs: ruling.citedRuleRefs,
-          },
-        ],
+      //
+      // The chair's OWN vote is deliberately excluded from this tally. It used
+      // to be appended, which let the tie-breaker vote in the count that
+      // measures how contested its own ruling was: on a 2-1 panel the chair
+      // ruling with the minority lifted consensus 1/3 -> 2/4 AND pulled
+      // meanProbability up with its own self-report, worth +0.079 — enough to
+      // cross the TRUSTWORTHY boundary near the margin. The score asks "how
+      // alone is this answer among the seats?", so the chair cannot be one of
+      // the seats answering it.
+      const chairFocused = computeAgreement(
+        debatePositions,
         ruling.verdict,
+        config.seats.length,
       );
-      const score = accuracyScore(chairInclusive);
+      const score = accuracyScore(chairFocused);
 
       return {
         verdict: ruling.verdict,
@@ -248,20 +290,22 @@ export async function runCouncil(
         accuracyScore: score,
         reliability: reliabilityBand(score),
         stage: 'chair',
-        // `agreement` describes the COUNCIL, so it stays chair-free and stays
-        // consistent with `opinions`/`debate`. `accuracyScore` above is the
-        // chair-inclusive number, because it describes the returned verdict.
-        agreement: debateMetrics,
+        // Focused on the RETURNED verdict, not the modal one. Shipping
+        // `debateMetrics` here let `agreement.distribution` describe a
+        // different answer than `verdict` — a UI reading both would state the
+        // opposite of the ruling. `agreementFocus` now always equals `verdict`.
+        agreement: chairFocused,
         opinions: panel.opinions,
         debate: debate.statements,
         chairRationale: ruling.rationale,
-        failedSeats: panel.failedSeats,
+        failedSeats,
         totalCalls,
         processingMs: Date.now() - start,
       };
     } catch (err) {
       // A dead chair is not a dead request: report the post-debate majority and
       // let `reliability` say it is not trustworthy.
+      clearTimeout(chairDeadline);
       console.warn(
         `[Council] chair failed, falling back to post-debate majority: ${
           err instanceof Error ? err.message : String(err)
@@ -275,7 +319,7 @@ export async function runCouncil(
         metrics: debateMetrics,
         opinions: panel.opinions,
         debate: debate.statements,
-        failedSeats: [...panel.failedSeats, config.chair.id],
+        failedSeats: mergeFailedSeats(failedSeats, [config.chair.id]),
         totalCalls,
         start,
       });

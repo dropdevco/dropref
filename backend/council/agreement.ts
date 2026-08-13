@@ -153,9 +153,34 @@ export function emptyDistribution(): Record<Verdict, number> {
  * has overruled the panel, "how much support does THE ANSWER have" is the
  * question, and that is not always the modal verdict.
  */
+/**
+ * Coverage-aware denominator for `consensusRatio`.
+ *
+ * Dividing by `samples.length` alone means a panel that lost a seat to a
+ * provider error reads as MORE unanimous, not less: two survivors agreeing
+ * scored 1.0 — identical to three seats agreeing — so a degraded council
+ * skipped the debate round and reported TRUSTWORTHY on two thirds of the
+ * evidence. Agreement among the seats that happened to answer is not the same
+ * quantity as agreement among the seats we asked.
+ *
+ * We divide by the panel we EXPECTED whenever that is larger. A missing seat
+ * therefore counts against consensus exactly as a dissenting one would, which
+ * is the conservative reading: we do not know how it would have voted.
+ *
+ * `quorum + 1` is the floor when the expected size is unknown, so a 2-seat
+ * result can never reach 1.0 by default.
+ */
+export function coverageFloor(
+  usable: number,
+  expectedPanelSize?: number,
+): number {
+  return Math.max(usable, expectedPanelSize ?? 0);
+}
+
 export function computeAgreement(
   samples: VerdictSample[],
   focusVerdict?: Verdict,
+  expectedPanelSize?: number,
 ): AgreementMetrics {
   const distribution = emptyDistribution();
   for (const s of samples) distribution[s.verdict] += 1;
@@ -169,6 +194,8 @@ export function computeAgreement(
       citationAgreement: 1,
       meanProbability: 0,
       distribution,
+      agreementFocus: focusVerdict ?? 'INCONCLUSIVE',
+      consensusDenominator: coverageFloor(0, expectedPanelSize),
     };
   }
 
@@ -182,12 +209,16 @@ export function computeAgreement(
             holders.length,
         );
 
+  const denominator = coverageFloor(n, expectedPanelSize);
+
   return {
-    consensusRatio: snap01(distribution[focus] / n),
+    consensusRatio: snap01(distribution[focus] / denominator),
     verdictEntropy: verdictEntropy(distribution),
     citationAgreement: citationAgreement(samples.map((s) => s.citedRuleRefs)),
     meanProbability,
     distribution,
+    agreementFocus: focus,
+    consensusDenominator: denominator,
   };
 }
 

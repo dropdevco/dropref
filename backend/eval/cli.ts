@@ -16,7 +16,16 @@ import fs from 'fs';
 import path from 'path';
 import type { SportId } from '../../types/contract';
 import type { CouncilInput, CouncilResult } from '../council/types';
-import { aggregate, compare } from './metrics';
+import type { RunFingerprint } from './fingerprint';
+import { buildRunFingerprint, fingerprintDigest } from './fingerprint';
+import {
+  CALIBRATION_FOOTNOTE,
+  RECALIBRATION_FOOTNOTE,
+  SCORE_KIND_FOOTNOTE,
+  aggregate,
+  compare,
+  defaultScoreKind,
+} from './metrics';
 import type { ArmName } from './metrics';
 import { renderConsole, renderMarkdown } from './report';
 import type { Arm } from './runner';
@@ -149,6 +158,8 @@ function parseArgs(argv: string[]): CliArgs {
 interface CouncilModule {
   runCouncil?: (input: CouncilInput, ...rest: unknown[]) => Promise<CouncilResult>;
   runSingleModel?: (input: CouncilInput, ...rest: unknown[]) => Promise<CouncilResult>;
+  /** Optional — used only to enrich the cache fingerprint. */
+  defaultCouncilConfig?: (...rest: unknown[]) => unknown;
 }
 
 /**
@@ -168,6 +179,47 @@ async function loadCouncilModule(): Promise<CouncilModule> {
         `Once runCouncil/runSingleModel are exported from backend/council/index.ts, re-run this command.`,
     );
   }
+}
+
+/**
+ * Assemble the cache fingerprint (defect B3).
+ *
+ * The resolved seat roster, chair, escalation thresholds and ACCURACY_WEIGHTS
+ * are read through the SAME lazy dynamic import the arms come from, so the
+ * fingerprint reflects what will actually run — including every env override.
+ * The council SOURCE is hashed by reading the files (see fingerprint.ts), never
+ * by importing them.
+ *
+ * If either optional export is missing the fingerprint is still built and
+ * flagged `incomplete`; the source hash and the COUNCIL_* env digest alone
+ * already invalidate the cache on any code or override change, so the cache
+ * stays safe, just less self-describing.
+ */
+async function resolveFingerprint(mod: CouncilModule, k: number): Promise<RunFingerprint> {
+  let config: unknown = null;
+  try {
+    config = typeof mod.defaultCouncilConfig === 'function' ? mod.defaultCouncilConfig() : null;
+  } catch (err) {
+    process.stderr.write(
+      `[eval] could not resolve the council config for the cache fingerprint ` +
+        `(${errorMessage(err)}) — continuing with a source-hash-only fingerprint.\n`,
+    );
+  }
+
+  let accuracyWeights: Record<string, number> | null = null;
+  try {
+    const specifier = '../council/agreement';
+    const agreement = (await import(specifier)) as { ACCURACY_WEIGHTS?: Record<string, number> };
+    accuracyWeights = agreement.ACCURACY_WEIGHTS ?? null;
+  } catch {
+    // Non-fatal: agreement.ts may be mid-edit. councilSourceHash still covers it.
+  }
+
+  return buildRunFingerprint({
+    k,
+    config: (config ?? null) as never,
+    accuracyWeights,
+  });
 }
 
 function resolveArm(mod: CouncilModule, name: ArmName): Arm {
@@ -234,7 +286,15 @@ async function main(): Promise<number> {
   }
 
   const cachePath = args.cache ? path.join(args.outDir, '.run-cache.json') : null;
+  const fingerprint = await resolveFingerprint(mod, args.k);
+  const configFingerprint = fingerprintDigest(fingerprint);
+  process.stderr.write(
+    `[eval] run fingerprint ${configFingerprint}` +
+      `${fingerprint.incomplete ? ' (INCOMPLETE — see warnings above)' : ''}\n`,
+  );
+
   const outcomesByArm = new Map<ArmName, CaseOutcome[]>();
+  const cacheHits = { baseline: 0, council: 0 };
 
   for (const armName of args.arms) {
     let armFn: Arm;
@@ -244,16 +304,19 @@ async function main(): Promise<number> {
       process.stderr.write(`[eval] ${errorMessage(err)}\n`);
       return 1;
     }
-    const outcomes = await runArm(armFn, cases, {
+    const run = await runArm(armFn, cases, {
       arm: armName,
       concurrency: args.concurrency,
       k: args.k,
       limit: args.limit,
       seed: args.seed,
       goldenVersion,
+      fingerprint,
       cachePath,
+      scoreKind: defaultScoreKind(armName),
     });
-    outcomesByArm.set(armName, outcomes);
+    outcomesByArm.set(armName, run.outcomes);
+    cacheHits[armName] = run.cacheHits;
   }
 
   fs.mkdirSync(args.outDir, { recursive: true });
@@ -268,35 +331,60 @@ async function main(): Promise<number> {
   // would print a fake +100pp delta. It reports that arm's metrics and stops.
   if (args.arms.length < 2) {
     const only = args.arms[0];
-    const metrics = aggregate(outcomesByArm.get(only) ?? [], only);
+    const armOutcomes = outcomesByArm.get(only) ?? [];
+    const metrics = aggregate(armOutcomes, only);
+    // Arm-independent, so it belongs to the run, not to the arm (SHOULD-FIX 7).
+    const usable = armOutcomes.filter((o) => !o.error);
+    const retrievalHitRate =
+      usable.length === 0 ? 0 : usable.filter((o) => o.retrievalHit).length / usable.length;
     const jsonPath = path.join(args.outDir, `arm-${only}-${stamp}.json`);
     fs.writeFileSync(
       jsonPath,
-      JSON.stringify({ generatedAt, goldenVersion, sports, metrics, outcomes: outcomesByArm.get(only) }, null, 2),
+      JSON.stringify(
+        {
+          generatedAt,
+          goldenVersion,
+          sports,
+          metrics,
+          runMetadata: { retrievalHitRate, configFingerprint, fingerprint, cacheHits },
+          caveats: [CALIBRATION_FOOTNOTE, SCORE_KIND_FOOTNOTE, RECALIBRATION_FOOTNOTE],
+          outcomes: armOutcomes,
+        },
+        null,
+        2,
+      ),
       'utf8',
     );
     process.stdout.write(
       `\nSingle-arm run (${only}) — no comparison possible.\n` +
-        `  n                 : ${metrics.n}\n` +
-        `  verdict accuracy  : ${(metrics.verdictAccuracy * 100).toFixed(1)}%\n` +
-        `  macro-F1          : ${metrics.macroF1.toFixed(3)}\n` +
-        `  mean rule F1      : ${metrics.meanRuleF1.toFixed(3)}\n` +
-        `  retrieval hit rate: ${(metrics.retrievalHitRate * 100).toFixed(1)}%\n` +
-        `  ECE / Brier       : ${metrics.ece.toFixed(3)} / ${metrics.brier.toFixed(3)}\n` +
-        `  error rate        : ${(metrics.errorRate * 100).toFixed(1)}%\n` +
+        `  basis                : ${metrics.basis} (this arm's OWN scored set — n=${metrics.scoredN})\n` +
+        `  cases attempted (n)  : ${metrics.n}\n` +
+        `  verdict accuracy     : ${(metrics.verdictAccuracy * 100).toFixed(1)}%\n` +
+        `  macro-F1             : ${metrics.macroF1.toFixed(3)}\n` +
+        `  AUROC                : ${metrics.auroc.toFixed(3)}\n` +
+        `  mean rule F1         : ${metrics.meanRuleF1.toFixed(3)}\n` +
+        `  ECE raw / recalib.   : ${metrics.eceRaw.toFixed(3)} / ${metrics.eceRecalibrated.toFixed(3)}\n` +
+        `  Brier raw / recalib. : ${metrics.brierRaw.toFixed(3)} / ${metrics.brierRecalibrated.toFixed(3)}\n` +
+        `  error rate           : ${(metrics.errorRate * 100).toFixed(1)}%\n` +
+        `\n  run metadata (NOT an arm metric):\n` +
+        `    retrieval hit rate : ${(retrievalHitRate * 100).toFixed(1)}%\n` +
+        `    config fingerprint : ${configFingerprint}\n` +
+        `\n  ${CALIBRATION_FOOTNOTE}\n` +
         `\nWrote ${jsonPath}\n` +
         `Run with --arms=baseline,council to get a significance-tested comparison.\n`,
     );
     return 0;
   }
 
-  const report = compare(
-    aggregate(baselineOutcomes, 'baseline'),
-    aggregate(councilOutcomes, 'council'),
-    baselineOutcomes,
-    councilOutcomes,
-    { goldenVersion, sports, generatedAt },
-  );
+  // compare() takes raw outcomes and does the pairing itself — there is no way
+  // to hand it per-arm-denominator metrics any more (defect B2).
+  const report = compare(baselineOutcomes, councilOutcomes, {
+    goldenVersion,
+    sports,
+    generatedAt,
+    configFingerprint,
+    cacheHits,
+  });
 
   const jsonPath = path.join(args.outDir, `comparison-${stamp}.json`);
   const mdPath = path.join(args.outDir, `comparison-${stamp}.md`);
@@ -304,7 +392,11 @@ async function main(): Promise<number> {
   const latestMd = path.join(args.outDir, 'latest.md');
   const markdown = renderMarkdown(report);
   const payload = JSON.stringify(
-    { report, outcomes: { baseline: baselineOutcomes, council: councilOutcomes } },
+    {
+      report,
+      fingerprint,
+      outcomes: { baseline: baselineOutcomes, council: councilOutcomes },
+    },
     null,
     2,
   );

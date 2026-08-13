@@ -66,16 +66,38 @@ export interface DebateStatement {
 
 /** How much the council agreed — the core accuracy signal. */
 export interface AgreementMetrics {
-  /** Share of seats holding the modal verdict, 0..1. */
+  /**
+   * Share of the EXPECTED panel holding `agreementFocus`, 0..1.
+   *
+   * The denominator is coverage-aware (see `coverageFloor` in agreement.ts): a
+   * seat that never answered still counts against the ratio, so a 2-of-3 panel
+   * can no longer read as unanimous.
+   */
   consensusRatio: number;
   /** Normalised Shannon entropy over the verdict distribution, 0 (unanimous) .. 1 (maximally split). */
   verdictEntropy: number;
   /** Jaccard overlap of cited rule sets across seats, 0..1. */
   citationAgreement: number;
-  /** Mean self-reported probability among seats holding the modal verdict. */
+  /** Mean self-reported probability among seats holding `agreementFocus`. */
   meanProbability: number;
-  /** Raw verdict tally. */
+  /** Raw verdict tally over the seats that actually answered. */
   distribution: Record<Verdict, number>;
+  /**
+   * The verdict `consensusRatio` and `meanProbability` are measured AGAINST.
+   * Always the verdict the council returned, so a consumer reading `agreement`
+   * next to `verdict` cannot be told about a different answer than the one it
+   * is showing.
+   *
+   * Optional only so that pre-existing hand-built literals still typecheck;
+   * every value produced by `computeAgreement` sets it.
+   */
+  agreementFocus?: Verdict;
+  /**
+   * The denominator `consensusRatio` was divided by. Equals the number of
+   * usable opinions on a full panel and the expected panel size on a degraded
+   * one, so `distribution` summing below it IS the coverage shortfall.
+   */
+  consensusDenominator?: number;
 }
 
 /** Why the council stopped where it did. */
@@ -113,6 +135,11 @@ export interface CouncilConfig {
   quorum: number;
   /** Hard ceiling on wall-clock for the whole council. */
   timeoutMs: number;
+  /**
+   * Dedicated budget for the chair, on its own deadline. Optional so existing
+   * hand-built configs keep working; falls back to the remaining total.
+   */
+  chairTimeoutMs?: number;
   /** When false, runs a single seat — the baseline arm of the A/B. */
   enabled: boolean;
 }

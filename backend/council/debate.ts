@@ -84,7 +84,10 @@ export async function runDebate(
           value.revisedVerdict !== own.verdict || Boolean(value.changedMind),
         latencyMs,
       };
-      return statement;
+      // `calls` travels with the statement: councilChatJson may have spent a
+      // retry, and counting one call per settled seat would under-report the
+      // council's real cost against the single-call baseline arm.
+      return { statement, calls };
     }),
   );
 
@@ -93,10 +96,13 @@ export async function runDebate(
   let totalCalls = 0;
 
   settled.forEach((result, i) => {
-    totalCalls += 1;
     if (result.status === 'fulfilled') {
-      statements.push(result.value);
+      totalCalls += result.value.calls;
+      statements.push(result.value.statement);
     } else {
+      // A rejection means the seat exhausted councilChatJson; it still cost at
+      // least the one request that failed.
+      totalCalls += 1;
       const seatId = participants[i].seatId;
       failedSeats.push(seatId);
       console.warn(`[Council] debate seat ${seatId} failed: ${String(result.reason)}`);

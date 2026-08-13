@@ -38,6 +38,18 @@ export function isRetryableModelError(err: unknown): boolean {
   );
 }
 
+/**
+ * Best available description of WHY a signal was aborted. `AbortController`
+ * supplies a generic DOMException when `abort()` is called with no argument, so
+ * that case falls back to naming the only aborter the council has: its deadline.
+ */
+export function abortReason(signal: AbortSignal): string {
+  const reason: unknown = (signal as { reason?: unknown }).reason;
+  if (reason instanceof Error && reason.name !== 'AbortError') return reason.message;
+  if (typeof reason === 'string' && reason.trim() !== '') return reason.trim();
+  return 'council deadline exceeded';
+}
+
 /** An abort from our own deadline must never be retried onto another model. */
 export function isAbortError(err: unknown): boolean {
   if (err instanceof Error && err.name === 'AbortError') return true;
@@ -210,6 +222,20 @@ export async function councilChatJson<T>(
       // councilChat; only malformed OUTPUT is worth a second prompt.
       if (err instanceof CouncilCallError || isAbortError(err)) break;
     }
+  }
+
+  // Entering an already-aborted signal breaks the loop before `lastErr` is ever
+  // assigned. Reporting String(undefined) there put the literal text
+  // "undefined" into PanelOpinion.error and into the eval CaseOutcome.error, so
+  // the abort supplies the reason when nothing else can.
+  if (lastErr === undefined) {
+    throw new CouncilCallError(
+      args.seat.id,
+      args.seat.model,
+      args.signal.aborted
+        ? `seat ${args.seat.id} aborted before any reply: ${abortReason(args.signal)}`
+        : `seat ${args.seat.id} produced no reply and no error`,
+    );
   }
 
   throw new CouncilCallError(

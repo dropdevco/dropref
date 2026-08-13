@@ -128,7 +128,24 @@ export function defaultChair(): CouncilSeat {
 export const DEFAULT_CONSENSUS_THRESHOLD = 0.75;
 export const DEFAULT_MIN_PROBABILITY = 0.65;
 export const DEFAULT_QUORUM = 2;
-export const DEFAULT_TIMEOUT_MS = 45_000;
+/**
+ * Whole-council wall-clock budget.
+ *
+ * Raised from 45s because that single budget had to cover up to six sequential
+ * round-trips — panel (<=2 attempts) -> debate (<=2) -> chair (<=2, on a
+ * deliberately slower opus-class model). The chair was therefore aborted most
+ * often on exactly the contested cases it exists to settle, and because a dead
+ * chair falls back to the post-debate majority at `stage: 'debate'`, a timeout
+ * was almost indistinguishable from a genuine debate settle.
+ */
+export const DEFAULT_TIMEOUT_MS = 90_000;
+
+/**
+ * Slice of the total reserved for the chair, so the earlier stages cannot spend
+ * the whole budget and starve it. The panel and debate rounds share whatever is
+ * left; the chair always gets its own fresh deadline.
+ */
+export const DEFAULT_CHAIR_TIMEOUT_MS = 30_000;
 
 export function defaultCouncilConfig(
   overrides: Partial<CouncilConfig> = {},
@@ -143,6 +160,7 @@ export function defaultCouncilConfig(
     minProbability: envNum('COUNCIL_MIN_PROBABILITY', DEFAULT_MIN_PROBABILITY),
     quorum: envNum('COUNCIL_QUORUM', DEFAULT_QUORUM),
     timeoutMs: envNum('COUNCIL_TIMEOUT_MS', DEFAULT_TIMEOUT_MS),
+    chairTimeoutMs: envNum('COUNCIL_CHAIR_TIMEOUT_MS', DEFAULT_CHAIR_TIMEOUT_MS),
     enabled: envBool('COUNCIL_ENABLED', true),
     ...overrides,
   };

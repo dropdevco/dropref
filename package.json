@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:council": "npx tsx backend/council/__tests__/agreement.test.ts",
+    "test:council": "npx tsx backend/council/__tests__/agreement.test.ts && npx tsx backend/council/__tests__/council.test.ts",
     "eval": "tsx backend/eval/cli.ts",
     "test:eval": "tsx backend/eval/__tests__/metrics.test.ts"
   },
