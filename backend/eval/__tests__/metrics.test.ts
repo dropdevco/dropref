@@ -846,7 +846,10 @@ function fingerprint(overrides: Partial<RunFingerprint> = {}): RunFingerprint {
     quorum: 2,
     accuracyWeights: { consensus: 0.4, probability: 0.3, entropy: 0.2, citation: 0.1 },
     councilSourceHash: 'aaaa0000',
+    graphSourceHash: 'cccc2222',
+    graphModels: { auditor: 'mistralai/mistral-small-3.2-24b-instruct' },
     councilEnvHash: 'bbbb1111',
+    graphEnvHash: 'dddd3333',
     incomplete: false,
     ...overrides,
   };

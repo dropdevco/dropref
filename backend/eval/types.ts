@@ -69,10 +69,25 @@ export interface GoldenSet {
  */
 export type ScoreKind = 'self_probability' | 'council_formula';
 
-/** Result of running one arm (baseline or council) over one case. */
+/**
+ * The arms the harness can run.
+ *
+ *  - 'baseline' — one model, one call (backend/council runSingleModel)
+ *  - 'council'  — the adjudication sub-graph alone (runCouncil)
+ *  - 'graph'    — council + the evidence auditor + the reliability composition
+ *                 (backend/graph/run.ts graphArm)
+ *
+ * The graph arm enters BELOW the observer nodes, because a golden case supplies
+ * a single hand-written observation and no clip. It therefore measures the
+ * auditor's contribution and nothing about the observer fan-out; see the
+ * limitation noted in backend/graph/run.ts.
+ */
+export type ArmName = 'baseline' | 'council' | 'graph';
+
+/** Result of running one arm over one case. */
 export interface CaseOutcome {
   caseId: string;
-  arm: 'baseline' | 'council';
+  arm: ArmName;
   expectedVerdict: Verdict;
   actualVerdict: Verdict;
   verdictCorrect: boolean;
@@ -132,7 +147,7 @@ export interface UnpairedArmFigures {
 }
 
 export interface ArmMetrics {
-  arm: 'baseline' | 'council';
+  arm: ArmName;
   /**
    * WHICH case set every headline field below was computed over. When this is
    * 'paired' the numbers are cross-arm comparable; when it is 'unpaired' they
@@ -231,7 +246,7 @@ export interface RunMetadata {
   configFingerprint?: string;
   /** Outcomes served from the resume cache, per arm. Non-zero means the run did
    *  NOT re-invoke the arm for those cases. */
-  cacheHits?: { baseline: number; council: number };
+  cacheHits?: Partial<Record<ArmName, number>>;
 }
 
 export interface ComparisonReport {

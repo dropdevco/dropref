@@ -46,7 +46,9 @@ Usage: npx tsx backend/eval/cli.ts [options]
 Options:
   --sport=soccer[,football]   Restrict to these sports (default: all golden sets found)
   --limit=N                   Only run the first N cases after ordering (smoke run)
-  --arms=baseline,council     Which arms to run (default: baseline,council)
+  --arms=baseline,council     Which arms to run (default: baseline,council).
+                              One of baseline | council | graph, or two of them:
+                              the FIRST is the control, the SECOND the challenger.
   --concurrency=4             Max in-flight cases per arm (default: 4)
   --seed=N                    Deterministic case ordering / subset selection
   --k=5                       Retrieval shortlist size (default: 5, matches the pipeline)
@@ -127,8 +129,23 @@ function parseArgs(argv: string[]): CliArgs {
   const arms = armsRaw
     .split(',')
     .map((s) => s.trim())
-    .filter((s): s is ArmName => s === 'baseline' || s === 'council');
-  if (arms.length === 0) throw new Error('--arms must include baseline and/or council');
+    .filter(
+      (s): s is ArmName => s === 'baseline' || s === 'council' || s === 'graph',
+    );
+  if (arms.length === 0) {
+    throw new Error('--arms must name one or more of: baseline, council, graph');
+  }
+  if (arms.length > 2) {
+    // compare() is a paired two-arm test. Three arms would need three pairings
+    // and a multiple-comparisons correction; silently reporting the first two
+    // would be worse than refusing.
+    throw new Error(
+      '--arms takes at most two arms (control,challenger). Run the third pairing separately.',
+    );
+  }
+  if (new Set(arms).size !== arms.length) {
+    throw new Error('--arms must name two DIFFERENT arms');
+  }
 
   const intFlag = (name: string): number | undefined => {
     const v = flags.get(name);
@@ -160,6 +177,21 @@ interface CouncilModule {
   runSingleModel?: (input: CouncilInput, ...rest: unknown[]) => Promise<CouncilResult>;
   /** Optional — used only to enrich the cache fingerprint. */
   defaultCouncilConfig?: (...rest: unknown[]) => unknown;
+}
+
+interface GraphModule {
+  graphArm?: (input: CouncilInput, ...rest: unknown[]) => Promise<CouncilResult>;
+  defaultGraphConfig?: (...rest: unknown[]) => Record<string, unknown>;
+}
+
+/**
+ * Loaded the same lazy way as the council, and for the same reason: nothing in
+ * backend/eval may pull the network layer in at import time.
+ */
+async function loadGraphModule(): Promise<GraphModule> {
+  const specifier = '../graph/run';
+  const mod = (await import(specifier)) as GraphModule & { default?: GraphModule };
+  return (mod.default ?? mod) as GraphModule;
 }
 
 /**
@@ -195,7 +227,11 @@ async function loadCouncilModule(): Promise<CouncilModule> {
  * already invalidate the cache on any code or override change, so the cache
  * stays safe, just less self-describing.
  */
-async function resolveFingerprint(mod: CouncilModule, k: number): Promise<RunFingerprint> {
+async function resolveFingerprint(
+  mod: CouncilModule,
+  k: number,
+  graphModels: Record<string, string> | null,
+): Promise<RunFingerprint> {
   let config: unknown = null;
   try {
     config = typeof mod.defaultCouncilConfig === 'function' ? mod.defaultCouncilConfig() : null;
@@ -219,10 +255,44 @@ async function resolveFingerprint(mod: CouncilModule, k: number): Promise<RunFin
     k,
     config: (config ?? null) as never,
     accuracyWeights,
+    graphModels,
   });
 }
 
-function resolveArm(mod: CouncilModule, name: ArmName): Arm {
+/**
+ * The graph node roster, for the cache fingerprint.
+ *
+ * Resolved through the same lazy import the graph arm comes from, so the
+ * fingerprint reflects what will actually run, env overrides included. Returns
+ * null when the graph module is unavailable — `graphSourceHash` and
+ * `graphEnvHash` still invalidate the cache on any code or override change, so
+ * the cache stays safe, just less self-describing.
+ */
+async function resolveGraphModels(): Promise<Record<string, string> | null> {
+  try {
+    const graph = await loadGraphModule();
+    if (typeof graph.defaultGraphConfig !== 'function') return null;
+    const config = graph.defaultGraphConfig();
+    const pick = ['observerA', 'observerB', 'reconciler', 'auditor'];
+    const models: Record<string, string> = {};
+    for (const key of pick) {
+      if (typeof config[key] === 'string') models[key] = config[key] as string;
+    }
+    return Object.keys(models).length > 0 ? models : null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveArm(mod: CouncilModule, name: ArmName): Promise<Arm> {
+  if (name === 'graph') {
+    const graph = await loadGraphModule();
+    if (typeof graph.graphArm !== 'function') {
+      throw new Error('backend/graph/run.ts does not export a function named "graphArm".');
+    }
+    const fn = graph.graphArm;
+    return (input: CouncilInput) => fn(input);
+  }
   const fn = name === 'council' ? mod.runCouncil : mod.runSingleModel;
   if (typeof fn !== 'function') {
     const expected = name === 'council' ? 'runCouncil' : 'runSingleModel';
@@ -286,7 +356,8 @@ async function main(): Promise<number> {
   }
 
   const cachePath = args.cache ? path.join(args.outDir, '.run-cache.json') : null;
-  const fingerprint = await resolveFingerprint(mod, args.k);
+  const graphModels = args.arms.includes('graph') ? await resolveGraphModels() : null;
+  const fingerprint = await resolveFingerprint(mod, args.k, graphModels);
   const configFingerprint = fingerprintDigest(fingerprint);
   process.stderr.write(
     `[eval] run fingerprint ${configFingerprint}` +
@@ -294,12 +365,12 @@ async function main(): Promise<number> {
   );
 
   const outcomesByArm = new Map<ArmName, CaseOutcome[]>();
-  const cacheHits = { baseline: 0, council: 0 };
+  const cacheHits: Partial<Record<ArmName, number>> = {};
 
   for (const armName of args.arms) {
     let armFn: Arm;
     try {
-      armFn = resolveArm(mod, armName);
+      armFn = await resolveArm(mod, armName);
     } catch (err) {
       process.stderr.write(`[eval] ${errorMessage(err)}\n`);
       return 1;
@@ -323,8 +394,15 @@ async function main(): Promise<number> {
   const generatedAt = new Date().toISOString();
   const stamp = timestampSlug(generatedAt);
 
-  const baselineOutcomes = outcomesByArm.get('baseline') ?? [];
-  const councilOutcomes = outcomesByArm.get('council') ?? [];
+  // The FIRST arm given is the control, the SECOND the challenger. The report's
+  // fields stay named `baseline`/`council` because that is what they
+  // structurally are — renaming them would break every existing results file —
+  // but the metrics blocks are STAMPED with the real arm names, so a
+  // graph-vs-baseline run cannot later be misread as a council run.
+  const controlArm = args.arms[0];
+  const challengerArm = args.arms[1] ?? args.arms[0];
+  const baselineOutcomes = outcomesByArm.get(controlArm) ?? [];
+  const councilOutcomes = outcomesByArm.get(challengerArm) ?? [];
 
   // A single-arm run cannot answer the comparison question, so it deliberately
   // does NOT fabricate a ComparisonReport with an empty opposing arm — that
@@ -384,6 +462,8 @@ async function main(): Promise<number> {
     generatedAt,
     configFingerprint,
     cacheHits,
+    controlArm,
+    challengerArm,
   });
 
   const jsonPath = path.join(args.outDir, `comparison-${stamp}.json`);
@@ -395,6 +475,7 @@ async function main(): Promise<number> {
     {
       report,
       fingerprint,
+      arms: { control: controlArm, challenger: challengerArm },
       outcomes: { baseline: baselineOutcomes, council: councilOutcomes },
     },
     null,

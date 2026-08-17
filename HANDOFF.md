@@ -28,12 +28,14 @@
 
 | Path | Owner | Rule |
 | --- | --- | --- |
-| `types/contract.ts` | **shared, FROZEN** | Never modify. Both halves build against it. |
+| `types/contract.ts` | **shared, FROZEN** | Never modify EXISTING fields. Both halves build against it. New capabilities may only ADD optional fields — see the graph block at the bottom of `AnalyzeResponse`. |
 | `app/page.tsx`, `components/**` | **Dev A** | My UI + state machine. |
 | `lib/api-client.ts`, `lib/utils.ts`, `mocks/**` | **Dev A** | Client fetch, mocks, cn helper. |
 | `app/layout.tsx`, `app/globals.css`, `public/**` | **Dev A** | Shell, theme tokens, assets. |
 | `app/api/analyze/route.ts` | **Dev B** | Validation is done (Part 3). Don't touch the body beyond wiring. |
 | `lib/ai/**`, `lib/rules/**`, `lib/sports.ts` | **Dev B** | Stubs that throw `NOT_IMPLEMENTED: Dev B`. Never edit. |
+| `backend/graph/**` | **Dev B** | The analysis graph. Owns the observation stage, the evidence auditor, the reliability composition and the human gate. |
+| `backend/council/**`, `backend/eval/**` | **Dev B** | Adjudication sub-graph and the accuracy harness. |
 | `data/sports/*.json` | **Dev B** | Empty corpus shells. Never edit. |
 
 **Hard constraints (from the brief):**
@@ -43,6 +45,46 @@
 - Mobile-first. Judges open this on a phone.
 - Adding a sport = one JSON file (Dev B) + one entry in the `SPORTS` array
   (`components/sports.ts`, Dev A). No other code changes.
+
+---
+
+## 2b. The analysis graph (what `/api/analyze` now runs)
+
+`POST /api/analyze` no longer calls the single-shot `runAnalysisPipeline`. It
+calls `runAnalysisGraph` in [`backend/graph/run.ts`](backend/graph/run.ts):
+
+```
+CV pre-pass ─┬─> observer A (raw clip) ──┐
+             └─> observer B (CV render) ─┴─> reconciler ─> retrieval
+                                                              │
+                          3 seats ─> [debate] ─> [chair] ──────┘
+                                          │
+                              evidence auditor ─> score ─> human gate
+```
+
+Two things changed that the frontend can see:
+
+1. **Verdicts can be HELD.** When `needsHumanReview` is `true`, the system does
+   not stand behind the verdict — it fired the human gate because reliability
+   fell below the bar, the auditor did not run, the observers could not be
+   reconciled, or the auditor found the verdict claims more than the evidence
+   supports. `reviewReasons` says which, in plain language.
+   **Dev A: this is not yet rendered.** The API ships it; the UI currently shows
+   a held verdict exactly like any other, which is the one thing this whole
+   change exists to stop. A `needs_review` variant of the RESULT state is the
+   outstanding frontend work.
+2. **New optional fields on `AnalyzeResponse`**, all additive, all safe to
+   ignore: `runId`, `reliability`, `reliabilityScore`, `accuracyScore`,
+   `needsHumanReview`, `reviewReasons`, `contested`, `stage`, `panel`.
+   `contested` is the list of facts the two observers disagreed about, and
+   `panel` is the seat-by-seat spread — both exist so dissent can be shown
+   rather than hidden behind a single confident verdict.
+
+Every run writes `backend/runs/<runId>/` (gitignored): one JSON artifact per
+node, plus a `review-queue/` entry when the gate fires. Writes are best-effort
+and never fail a request.
+
+Config lives in `.env.example` under "Analysis graph". Tests: `npm run test:graph`.
 
 ---
 

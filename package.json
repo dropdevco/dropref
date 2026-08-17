@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test:council": "npx tsx backend/council/__tests__/agreement.test.ts && npx tsx backend/council/__tests__/council.test.ts",
     "eval": "tsx backend/eval/cli.ts",
-    "test:eval": "tsx backend/eval/__tests__/metrics.test.ts"
+    "test:eval": "tsx backend/eval/__tests__/metrics.test.ts",
+    "test:graph": "npx tsx backend/graph/__tests__/graph.test.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

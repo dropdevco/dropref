@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server';
-import { runAnalysisPipeline } from '../../../backend/ai/pipeline';
+import { runAnalysisGraph } from '../../../backend/graph/run';
 import { SportId } from '../../../types/contract';
 
-export const maxDuration = 60;
+/**
+ * Must exceed the graph's own budget, or the platform kills the request before
+ * the graph's deadlines can fire and degrade gracefully. The graph spends up to
+ * GRAPH_OBSERVE_TIMEOUT_MS (60s) on observation, then COUNCIL_TIMEOUT_MS (90s)
+ * on the panel and debate, then COUNCIL_CHAIR_TIMEOUT_MS (30s) on the chair and
+ * GRAPH_AUDIT_TIMEOUT_MS (20s) on the audit — each on its own clock.
+ *
+ * At 60s this route used to abort mid-council, which looked identical to a
+ * genuine settle: exactly the failure the chair's dedicated deadline was added
+ * to prevent, reintroduced one layer up. Lower the GRAPH_ and COUNCIL_ budgets
+ * if your host caps duration below this.
+ */
+export const maxDuration = 300;
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
@@ -26,7 +38,11 @@ export async function POST(req: Request) {
     const videoMimeType = videoFile.type || 'video/mp4';
 
     let cvMetadata = null;
-    let finalVideoBase64 = videoBase64;
+    // The CV-annotated render, kept SEPARATE from the raw clip. Observer A must
+    // read the original footage: handing both observers the annotated video
+    // would give them the same evidence and collapse the fan-out into two
+    // samples of one opinion.
+    let annotatedVideoBase64: string | null = null;
     let skeletonBase64 = null;
     let keyFramesBase64 = null;
     
@@ -52,7 +68,7 @@ export async function POST(req: Request) {
           const cvData = await cvRes.json();
           cvMetadata = cvData.metadata;
           if (cvData.videoBase64) {
-            finalVideoBase64 = cvData.videoBase64;
+            annotatedVideoBase64 = cvData.videoBase64;
           }
           if (cvData.skeletonBase64) {
             skeletonBase64 = cvData.skeletonBase64;
@@ -70,18 +86,19 @@ export async function POST(req: Request) {
       console.log('CV service is disabled via NEXT_PUBLIC_ENABLE_SAM env var. Proceeding with raw video.');
     }
 
-    const response = await runAnalysisPipeline(
-      sport as SportId,
-      finalVideoBase64,
+    const response = await runAnalysisGraph({
+      sport: sport as SportId,
+      videoBase64,
       videoMimeType,
+      annotatedVideoBase64,
       skeletonBase64,
-      originalCall || null,
+      originalCall: originalCall || null,
       cvMetadata,
-      keyFramesBase64
-    );
+      keyFramesBase64,
+    });
 
-    if (finalVideoBase64 !== videoBase64) {
-      response.annotatedVideoBase64 = finalVideoBase64;
+    if (annotatedVideoBase64) {
+      response.annotatedVideoBase64 = annotatedVideoBase64;
     }
 
     return NextResponse.json(response);

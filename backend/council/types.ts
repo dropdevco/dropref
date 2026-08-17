@@ -151,4 +151,16 @@ export interface CouncilInput {
   observation: string;
   originalCall: string | null;
   candidates: SportRule[];
+  /**
+   * Facts the observation stage could NOT settle, one line each.
+   *
+   * Optional, and absent means "nothing was contested OR nobody checked" —
+   * every pre-graph caller (including the eval harness, whose golden cases
+   * carry a single hand-written observation) keeps working unchanged.
+   *
+   * When present these are shown to every seat, to the debate round and to the
+   * chair. A verdict resting on a fact listed here is resting on something the
+   * observers disagreed about, and the seats are told to treat it that way.
+   */
+  contested?: string[];
 }

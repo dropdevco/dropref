@@ -138,11 +138,32 @@ const NO_CALL_KEY = `No referee decision was recorded, so judge the PLAY itself:
 - BAD_CALL — an offence occurred that should have been penalised.
 - INCONCLUSIVE — the observation is insufficient to decide either way.`;
 
+/**
+ * Facts the observers could not agree on, rendered for the seats.
+ *
+ * Empty string when nothing was contested, so the prompt is byte-identical to
+ * the pre-graph one on that path — a block reading "(nothing contested)" would
+ * have changed every existing prompt and made the A/B measure the wording
+ * change as well as the graph.
+ */
+function contestedBlock(input: CouncilInput): string {
+  const contested = (input.contested ?? []).filter((c) => c.trim() !== '');
+  if (contested.length === 0) return '';
+  return `
+
+FACTS THE OBSERVERS COULD NOT AGREE ON:
+${contested.map((c) => `- ${c}`).join('\n')}
+
+Two independent observers watched this clip and disagreed about the points above. Treat each as UNSETTLED,
+not as a detail to pick whichever way suits your lens. If your verdict depends on one of them, say so
+explicitly and prefer INCONCLUSIVE.`;
+}
+
 function caseBlock(input: CouncilInput): string {
   return `SPORT: ${input.displayName}
 
 OBSERVATION (what the clip showed):
-${input.observation}
+${input.observation}${contestedBlock(input)}
 
 ${
   input.originalCall

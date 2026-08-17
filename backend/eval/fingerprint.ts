@@ -68,12 +68,26 @@ export interface RunFingerprint {
   /** sha256 over the contents of backend/council/**. */
   councilSourceHash: string;
   /**
+   * sha256 over the contents of backend/graph/**.
+   *
+   * The graph arm's answer depends on the auditor prompt, the penalty constants
+   * in score.ts and the reconciler ceiling just as much as the council arm's
+   * depends on backend/council. Without this, editing the auditor and re-running
+   * would serve the pre-edit outcomes straight out of the resume cache and
+   * report the change as having had no effect — defect B3 with a new directory.
+   */
+  graphSourceHash: string;
+  /** Resolved graph node roster (observers, reconciler, auditor), or null. */
+  graphModels: Record<string, string> | null;
+  /**
    * sha256 over every COUNCIL_*-prefixed environment variable (name and value).
    * Hashed rather than stored so nothing that happens to live under that prefix
    * ends up written to a results file. Catches model-slug and threshold
    * overrides even when the resolved config could not be read.
    */
   councilEnvHash: string;
+  /** sha256 over every GRAPH_*-prefixed environment variable, name and value. */
+  graphEnvHash: string;
   /** True when seats/chair/thresholds/weights could not be resolved. */
   incomplete: boolean;
 }
@@ -104,6 +118,9 @@ export function fingerprintDigest(fp: RunFingerprint): string {
 /** Default location of the council implementation, relative to the repo root. */
 export const COUNCIL_DIR = path.join(process.cwd(), 'backend', 'council');
 
+/** Default location of the graph implementation, relative to the repo root. */
+export const GRAPH_DIR = path.join(process.cwd(), 'backend', 'graph');
+
 function walkFiles(dir: string, acc: string[] = []): string[] {
   let entries: fs.Dirent[];
   try {
@@ -126,16 +143,16 @@ function walkFiles(dir: string, acc: string[] = []): string[] {
 }
 
 /**
- * Content hash of backend/council/**.
+ * Content hash of a source directory — backend/council or backend/graph.
  *
  * READS the files; deliberately does not import them. Importing would pull in
- * the OpenRouter client and would fail outright while the council is mid-edit,
- * which is exactly when a stale cache is most dangerous.
+ * the OpenRouter client and would fail outright while either module is
+ * mid-edit, which is exactly when a stale cache is most dangerous.
  *
  * Paths are hashed relative to `dir` and line endings normalised, so the digest
  * is stable across machines and across a CRLF checkout.
  */
-export function hashCouncilSource(dir: string = COUNCIL_DIR): string {
+export function hashSourceDir(dir: string): string {
   const files = walkFiles(dir);
   if (files.length === 0) return 'council-source-unreadable';
   const hash = crypto.createHash('sha256');
@@ -154,13 +171,31 @@ export function hashCouncilSource(dir: string = COUNCIL_DIR): string {
   return hash.digest('hex');
 }
 
-/** Digest of every COUNCIL_* environment variable. See RunFingerprint.councilEnvHash. */
-export function hashCouncilEnv(env: Record<string, string | undefined> = process.env): string {
+/** Back-compat alias: the same content hash, defaulted to the council dir. */
+export function hashCouncilSource(dir: string = COUNCIL_DIR): string {
+  return hashSourceDir(dir);
+}
+
+/** Digest of every environment variable under `prefix`. Hashed, never stored. */
+export function hashEnvPrefix(
+  prefix: string,
+  env: Record<string, string | undefined> = process.env,
+): string {
   const entries = Object.keys(env)
-    .filter((key) => key.startsWith('COUNCIL_'))
+    .filter((key) => key.startsWith(prefix))
     .sort()
     .map((key) => `${key}=${env[key] ?? ''}`);
   return sha256(entries.join('\n'));
+}
+
+/** Digest of every COUNCIL_* environment variable. See RunFingerprint.councilEnvHash. */
+export function hashCouncilEnv(env: Record<string, string | undefined> = process.env): string {
+  return hashEnvPrefix('COUNCIL_', env);
+}
+
+/** Digest of every GRAPH_* environment variable. See RunFingerprint.graphEnvHash. */
+export function hashGraphEnv(env: Record<string, string | undefined> = process.env): string {
+  return hashEnvPrefix('GRAPH_', env);
 }
 
 // ---------------------------------------------------------------------------
@@ -196,6 +231,9 @@ export interface BuildFingerprintOptions {
   config?: CouncilConfigLike | null;
   accuracyWeights?: Record<string, number> | null;
   councilDir?: string;
+  graphDir?: string;
+  /** Resolved graph node models, e.g. { auditor: 'mistralai/...' }. */
+  graphModels?: Record<string, string> | null;
   env?: Record<string, string | undefined>;
   harnessVersion?: string;
 }
@@ -228,7 +266,10 @@ export function buildRunFingerprint(opts: BuildFingerprintOptions): RunFingerpri
     quorum: numOrNull(config?.quorum),
     accuracyWeights: weights,
     councilSourceHash: hashCouncilSource(opts.councilDir ?? COUNCIL_DIR),
+    graphSourceHash: hashSourceDir(opts.graphDir ?? GRAPH_DIR),
+    graphModels: opts.graphModels ? { ...opts.graphModels } : null,
     councilEnvHash: hashCouncilEnv(opts.env ?? process.env),
+    graphEnvHash: hashGraphEnv(opts.env ?? process.env),
     incomplete: seats === null || chair === null || weights === null,
   };
 }

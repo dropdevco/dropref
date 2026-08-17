@@ -28,6 +28,36 @@ export interface AnalyzeResponse {
   originalCall: string | null;
   processingMs: number;
   annotatedVideoBase64?: string;
+
+  /* ---------------------------------------------------------------- */
+  /* Graph fields (backend/graph/run.ts)                               */
+  /*                                                                   */
+  /* This interface is shared and frozen, so every field the analysis  */
+  /* graph adds is OPTIONAL and every one of them is additive. A client */
+  /* that predates the graph renders exactly what it rendered before.   */
+  /* ---------------------------------------------------------------- */
+
+  /** Artifact directory id: backend/runs/<runId>/. */
+  runId?: string;
+  /** Actionable band derived from `reliabilityScore`. */
+  reliability?: 'TRUSTWORTHY' | 'REVIEW_SUGGESTED' | 'UNRELIABLE';
+  /** 0..1 after the observation and audit penalties. THE number to trust. */
+  reliabilityScore?: number;
+  /** 0..1 from council agreement alone, before those penalties. */
+  accuracyScore?: number;
+  /**
+   * True when this result was HELD by the human gate. A client showing this as
+   * a plain verdict is showing an answer the system does not stand behind.
+   */
+  needsHumanReview?: boolean;
+  /** Why the gate fired, in plain language. Empty when it did not. */
+  reviewReasons?: string[];
+  /** Facts the two observers could not agree on. */
+  contested?: string[];
+  /** How far council escalation went before settling. */
+  stage?: 'panel' | 'debate' | 'chair';
+  /** The panel spread, for showing dissent instead of hiding it. */
+  panel?: { role: string; verdict: Verdict; confidence: Confidence }[];
 }
 
 export type ErrorCode =

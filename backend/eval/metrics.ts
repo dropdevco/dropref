@@ -29,6 +29,7 @@ import type { CouncilResult } from '../council/types';
 import { ruleRef } from '../council/rule-ref';
 import type {
   ArmMetrics,
+  ArmName,
   CaseOutcome,
   ComparisonReport,
   GoldenCase,
@@ -44,7 +45,7 @@ export const VERDICT_CLASSES: Verdict[] = ['FAIR_CALL', 'BAD_CALL', 'INCONCLUSIV
 /** The three difficulty bands, in a fixed order. */
 export const DIFFICULTIES: GoldenCase['difficulty'][] = ['easy', 'medium', 'hard'];
 
-export type ArmName = 'baseline' | 'council';
+export type { ArmName };
 
 /**
  * Printed with every report, and returned from `calibrationCaveats()`.
@@ -812,14 +813,17 @@ export interface PairedAggregation {
 export function aggregatePaired(
   baselineOutcomes: CaseOutcome[],
   councilOutcomes: CaseOutcome[],
+  arms: { control?: ArmName; challenger?: ArmName } = {},
 ): PairedAggregation {
+  const controlArm = arms.control ?? 'baseline';
+  const challengerArm = arms.challenger ?? 'council';
   const paired = pairOutcomes(baselineOutcomes, councilOutcomes);
 
-  const baselineUnpaired = aggregate(baselineOutcomes, 'baseline');
-  const councilUnpaired = aggregate(councilOutcomes, 'council');
+  const baselineUnpaired = aggregate(baselineOutcomes, controlArm);
+  const councilUnpaired = aggregate(councilOutcomes, challengerArm);
 
-  const baseline = aggregateOn(paired.baseline, 'paired', 'baseline');
-  const council = aggregateOn(paired.council, 'paired', 'council');
+  const baseline = aggregateOn(paired.baseline, 'paired', controlArm);
+  const council = aggregateOn(paired.council, 'paired', challengerArm);
 
   // `n` and the cost figures describe the whole run, not the intersection —
   // an errored case still burned wall-clock and tokens, and hiding it here
@@ -969,7 +973,18 @@ export interface CompareMeta {
   /** Hash of everything that changes the answers. See ./fingerprint.ts. */
   configFingerprint?: string;
   /** Outcomes served from the resume cache, per arm. */
-  cacheHits?: { baseline: number; council: number };
+  cacheHits?: Partial<Record<ArmName, number>>;
+  /**
+   * Which arms filled the control and challenger slots.
+   *
+   * The report's fields are still named `baseline` and `council` because that
+   * is what they structurally ARE — control and challenger — and renaming them
+   * would break every existing results file. These two labels are what the
+   * metrics blocks are STAMPED with, so a graph-vs-baseline run cannot be
+   * misread later as a council run.
+   */
+  controlArm?: ArmName;
+  challengerArm?: ArmName;
 }
 
 /**
@@ -993,7 +1008,12 @@ export function compare(
   councilOutcomes: CaseOutcome[],
   meta: CompareMeta,
 ): ComparisonReport {
-  const agg = aggregatePaired(baselineOutcomes, councilOutcomes);
+  const controlArm = meta.controlArm ?? 'baseline';
+  const challengerArm = meta.challengerArm ?? 'council';
+  const agg = aggregatePaired(baselineOutcomes, councilOutcomes, {
+    control: controlArm,
+    challenger: challengerArm,
+  });
   const { baseline, council, paired, summary } = agg;
 
   const significance = mcnemarExactTest(baselineOutcomes, councilOutcomes);
@@ -1042,10 +1062,12 @@ export function compare(
         `until that is fixed.`,
     );
   }
-  if ((meta.cacheHits?.baseline ?? 0) + (meta.cacheHits?.council ?? 0) > 0) {
+  const controlHits = meta.cacheHits?.[controlArm] ?? 0;
+  const challengerHits = meta.cacheHits?.[challengerArm] ?? 0;
+  if (controlHits + challengerHits > 0) {
     caveats.push(
-      `Resume cache served ${meta.cacheHits?.baseline ?? 0} baseline and ` +
-        `${meta.cacheHits?.council ?? 0} council outcome(s); those cases were NOT re-invoked ` +
+      `Resume cache served ${controlHits} ${controlArm} and ` +
+        `${challengerHits} ${challengerArm} outcome(s); those cases were NOT re-invoked ` +
         `in this run. They are only reusable because their recorded config fingerprint matched ` +
         `(${meta.configFingerprint ?? 'unknown'}).`,
     );

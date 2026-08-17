@@ -25,9 +25,9 @@ import fs from 'fs';
 import path from 'path';
 import type { RunFingerprint } from './fingerprint';
 import { canonicalJson, diffFingerprints, fingerprintDigest, sha256 } from './fingerprint';
-import type { CaseOutcome } from './types';
+import type { ArmName, CaseOutcome } from './types';
 
-export type ArmName = 'baseline' | 'council';
+export type { ArmName };
 
 /** Everything the key is derived from. */
 export interface CacheKeyComponents {

@@ -34,3 +34,6 @@ cv_service/venv/
 
 # eval harness output (generated, sometimes large)
 backend/eval/results/
+
+# graph run artifacts (generated, one directory per analysis)
+backend/runs/
