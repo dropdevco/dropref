@@ -5,7 +5,7 @@
 > Read this top-to-bottom before touching anything. **Update it on every
 > meaningful change** — see [How to keep this current](#how-to-keep-this-current).
 
-**Last updated:** 2026-07-28 · **Branch:** `dev-a` · **Build:** ✅ `npm run build` passes · **QA:** ✅ all 4 states verified (desktop + mobile) · **A11y:** ✅ swept + reviewed · **Design:** ✅ premium dark revamp + WebGL mist + product tour
+**Last updated:** 2026-08-21 (paths corrected; see changelog) · **Branch:** `dev-a`/`main` · **Build:** ✅ `npm run build` passes (as of 2026-07-28; not re-verified in this pass) · **QA:** ✅ all 4 states verified (desktop + mobile) · **A11y:** ✅ swept + reviewed · **Design:** ✅ premium dark revamp + WebGL mist + product tour
 
 ---
 
@@ -17,8 +17,11 @@
   pipeline. We share one frozen contract and never edit each other's files.
 - **Where the code lives:** the `dropref/` git repo (remote
   `github.com/dropdevco/dropref`). This `HANDOFF.md` sits at its root.
-- **Current state:** full UI built and wired to **mock data**. Real endpoint
-  exists but its `analyze()` is Dev B's stub. Everything typechecks + builds.
+- **Current state:** full UI built and wired to the **REAL** `/api/analyze`
+  (`USE_MOCK = false`, api-client.ts:20). The backend graph/council are implemented
+  and test-covered under `backend/`. Everything typechecks + builds.
+  (NOTE: earlier revisions of this doc described the app as running on mock
+  fixtures with `analyze()` as a stub — that is no longer true.)
 - **To run it:** `npm install && npm run dev` → http://localhost:3000. No API
   key needed while mocking.
 
@@ -33,14 +36,18 @@
 | `lib/api-client.ts`, `lib/utils.ts`, `mocks/**` | **Dev A** | Client fetch, mocks, cn helper. |
 | `app/layout.tsx`, `app/globals.css`, `public/**` | **Dev A** | Shell, theme tokens, assets. |
 | `app/api/analyze/route.ts` | **Dev B** | Validation is done (Part 3). Don't touch the body beyond wiring. |
-| `lib/ai/**`, `lib/rules/**`, `lib/sports.ts` | **Dev B** | Stubs that throw `NOT_IMPLEMENTED: Dev B`. Never edit. |
+| `backend/ai/**`, `backend/rules/**`, `backend/sports.ts` | **Dev B** | ⚠️ Moved from `lib/ai/**`, `lib/rules/**`, `lib/sports.ts` at some point after 2026-07-28 (not recorded in this changelog — see the 2026-08-21 entry below). Never edit. |
 | `backend/graph/**` | **Dev B** | The analysis graph. Owns the observation stage, the evidence auditor, the reliability composition and the human gate. |
 | `backend/council/**`, `backend/eval/**` | **Dev B** | Adjudication sub-graph and the accuracy harness. |
-| `data/sports/*.json` | **Dev B** | Empty corpus shells. Never edit. |
+| `backend/data/sports/*.json` | **Dev B** | ⚠️ Moved from `data/sports/*.json` (see above). Corpus files, no longer empty shells — Soccer/Football/Lacrosse are populated. Never edit. |
+| `cv_service/` | **Dev B** | Separate Python/FastAPI service (RT-DETR + DeepSORT + PaddleOCR), optional, called over HTTP from `app/api/analyze/route.ts` (`http://127.0.0.1:8000/track`) when `NEXT_PUBLIC_ENABLE_SAM=true`. Not present when this doc was first written. |
 
 **Hard constraints (from the brief):**
-- No dependencies beyond: `@google/generative-ai`, `zod`, `fuse.js`,
-  `lucide-react`, shadcn components (+ their radix/cva/clsx/tailwind-merge deps).
+- No dependencies beyond: `@google/generative-ai` ^0.21.0, `zod` ^3.23.8, `fuse.js` ^7.0.0,
+  `lucide-react` ^0.427.0, shadcn components (+ their radix/cva/clsx/tailwind-merge deps:
+  `@radix-ui/react-accordion` ^1.2.1, `@radix-ui/react-slider` ^1.4.7, `@radix-ui/react-slot`
+  ^1.1.0, `class-variance-authority` ^0.7.0, `clsx` ^2.1.1, `tailwind-merge` ^2.5.2).
+  Base stack: Next.js 14.2.5, React ^18.3.1, TypeScript ^5.5.4 (versions per `package.json`).
   **Ask before adding anything else.**
 - Mobile-first. Judges open this on a phone.
 - Adding a sport = one JSON file (Dev B) + one entry in the `SPORTS` array
@@ -95,7 +102,7 @@ Config lives in `.env.example` under "Analysis graph". Tests: `npm run test:grap
 
 **Mock wiring** — [`lib/api-client.ts`](lib/api-client.ts):
 ```ts
-export const USE_MOCK = true;                          // one line to flip to the real API
+export const USE_MOCK = false;   // CURRENT VALUE (api-client.ts:20) — the app calls the REAL /api/analyze
 const MOCK_SCENARIO = 'bad';                            // 'fair' | 'bad' | 'inconclusive' | 'error'
 const MOCK_DELAY_MS = 12_000;                           // simulated latency for honest loading UI
 ```
@@ -108,8 +115,9 @@ const MOCK_DELAY_MS = 12_000;                           // simulated latency for
   the existing mock fixtures without changing `MOCK_SCENARIO` or uploading a clip.
 
 **Client-side validation** — [`components/clip.ts`](components/clip.ts):
-20MB cap (matches the server), 18s duration cap (UI-only, read from a detached
-`<video>` before upload), accepts mp4/mov/webm.
+`MAX_SOURCE_BYTES` = **150MB** (clip.ts:13) — there is NO server-side size check;
+`MAX_SOURCE_DURATION_S` = 300 (5 min, clip.ts:15); `MAX_SELECTION_S` = 18 (clip.ts:20,
+UI-only, read from a detached `<video>` before upload). Accepts mp4/mov/webm.
 Uploaded clips open in an editor before analysis. Crop mode exposes a
 PowerPoint-style crop box with edge/corner handles; Zoom mode uses the same crop
 region but lets users drag it and pinch/wheel to zoom. Users must click **Set
@@ -128,12 +136,17 @@ verdict**.
   apply and returns an `AnalyzeResponse` (verdict + confidence + reasoning +
   cited rules) — same shape the app produces. **Requires `GEMINI_API_KEY`** in
   `.env.local`; without it the lab shows candidates only and says the verdict
-  step is off. Optional `GEMINI_MODEL` env overrides the model (default
-  `gemini-1.5-flash`).
+  step is off. Optional `GEMINI_MODEL` env overrides the model. Real defaults live in
+  `lib/lab/adjudicate.ts:233-245` — OpenRouter path tries
+  `google/gemini-2.5-flash` then `openai/gpt-4o-mini`; the Gemini-SDK path tries
+  `gemini-flash-latest`, `gemini-2.0-flash`, `gemini-2.0-flash-001`.
+  (No `gemini-1.5-flash` string exists anywhere in the codebase.)
 This all lives under Dev-A paths (`app/lab`, `app/api/rules-lab`, `lib/lab`) and
-**only imports** Dev B's `getSport`/`retrieveRules` — never edits `lib/ai/**`,
-`lib/rules/**`, `lib/sports.ts`, or `data/**`. The lab's adjudicator is separate
-from (and can later defer to) Dev B's real `lib/ai/pipeline.ts`. Curl-able:
+**only imports** Dev B's `getSport`/`retrieveRules` — never edits `backend/ai/**`,
+`backend/rules/**`, `backend/sports.ts`, or `backend/data/**` (moved from `lib/ai/**`,
+`lib/rules/**`, `lib/sports.ts`, `data/**` — see the ownership table above).
+The lab's adjudicator is separate from (and can later defer to) Dev B's real
+`backend/ai/pipeline.ts`. Curl-able:
 `POST /api/rules-lab {sport, query, originalCall?, k?}`.
 
 **Design language** (dark-only, "VAR booth at a night match"): tokens live in
@@ -199,7 +212,7 @@ Status legend: ☐ todo · ◐ in progress · ☑ done
   contrast fixed (rejection text now `red-600`/`red-400`, AA in both themes).
   Adversarially reviewed (Opus) — PASS.
 - ☐ **Deploy** (Vercel) and fill the live link in `README.md`
-- ☐ **Flip to real API** once Dev B lands `analyze()` — set `USE_MOCK = false`, smoke-test the multipart round-trip + each error code
+- ☑ **Flip to real API** — DONE: `USE_MOCK` is already `false` and the app POSTs to the real `/api/analyze`. Remaining: smoke-test the multipart round-trip + each error code
 
 _Adjust as we go — this list is the working plan, not a contract._
 
@@ -211,14 +224,32 @@ _Adjust as we go — this list is the working plan, not a contract._
 npm install          # deps
 npm run dev          # local dev @ :3000
 npm run build        # MUST stay green — proves Dev B can pull safely
+npm run lint         # next lint
 npm run typecheck    # tsc --noEmit
+```
+
+Test/eval scripts (no `npm test` — these are it, each run via `tsx`, not Jest/Vitest):
+
+```bash
+npm run test:council   # backend/council/__tests__/agreement.test.ts + council.test.ts
+npm run test:eval      # backend/eval/__tests__/metrics.test.ts
+npm run test:graph     # backend/graph/__tests__/graph.test.ts
+npm run eval            # tsx backend/eval/cli.ts — accuracy/cost eval harness
+```
+
+Optional CV microservice (`cv_service/`, only needed for `NEXT_PUBLIC_ENABLE_SAM=true`):
+
+```bash
+cd cv_service
+pip install -r requirements.txt
+uvicorn main:app --port 8000   # app/api/analyze/route.ts calls http://127.0.0.1:8000/track
 ```
 
 ---
 
 ## 7. How to keep this current
 
-**Every time you (Claude or a dev) make a meaningful change, update this file
+**Every time you make a meaningful change, update this file
 in the same commit.** Specifically:
 1. Bump **Last updated** and the **Build** status line at the top.
 2. Move the relevant roadmap item's checkbox (§5).
@@ -499,3 +530,20 @@ in the same commit.** Specifically:
   Verified in-browser at 1280px and 375px: all 8 steps anchor correctly (03→trim,
   04→stage, 05→crop-zoom), the demo mounts and unmounts on exactly those steps,
   the card stays in the viewport, and nothing leaks after the tour closes.
+- **2026-08-21** — Documentation correction pass (no code changes). Between
+  2026-07-28 and now, Dev B's code moved from `lib/ai/**`, `lib/rules/**`,
+  `lib/sports.ts`, and `data/sports/*.json` to `backend/ai/**`, `backend/rules/**`,
+  `backend/sports.ts`, and `backend/data/sports/*.json` — this changelog never
+  recorded that move, so every reference to the old `lib/`/`data/` paths above is
+  historical (accurate for its own dated entry, describing where the code was
+  *at that time*) rather than current. Fixed the ownership table (§2) and the
+  Rulebook Lab section (§3) to point at the current `backend/` paths; folded in
+  exact dependency versions and the full command list (test/eval scripts,
+  `cv_service` setup) that were missing from §6. Also noticed but did NOT
+  change, since it needs a Dev B decision rather than a doc fix: `cv_service/`
+  (Python/FastAPI CV microservice) and `backend/eval/` (accuracy/cost eval
+  harness) both now exist in the tree but are undocumented anywhere in this
+  file beyond the new table rows above — worth a proper write-up. Separately,
+  a merged/orphaned `drop-ref/HANDOFF.md` one directory up (outside this git
+  repo, auto-generated, 10-section format) was reconciled into this file and
+  removed as a duplicate.
