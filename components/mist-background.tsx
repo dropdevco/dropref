@@ -303,9 +303,21 @@ export function MistBackground() {
     // so a context that was lost earlier is still lost here — treat that as
     // "no WebGL" and let the CSS fallback carry the look.
     if (!gl || gl.isContextLost()) {
+      const wasLost = gl !== null;
       gl = null;
       if (!disposed) setGlReady(false);
-      return;
+      if (!wasLost) return; // no WebGL at all: nothing can ever come back
+      // The context exists but is lost right now. If the browser restores it,
+      // re-run setup via the epoch bump; without this listener the mist would
+      // stay on the CSS fallback until a full page reload.
+      const onRestoredEarly = () => {
+        if (!disposed) setEpoch((n) => n + 1);
+      };
+      canvas.addEventListener('webglcontextrestored', onRestoredEarly);
+      return () => {
+        disposed = true;
+        canvas.removeEventListener('webglcontextrestored', onRestoredEarly);
+      };
     }
 
     // Release our GPU objects and let .mist-fallback carry the look. Never

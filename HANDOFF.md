@@ -548,8 +548,9 @@ in the same commit.** Specifically:
   repo, auto-generated, 10-section format) was reconciled into this file and
   removed as a duplicate.
 - **2026-11-10** — Known-gaps pass.
-  - **Held verdicts now render** (see §2b). No mock fixture exists for the held
-    state yet; add one to `mocks/` if you want to exercise it with `USE_MOCK`.
+  - **Held verdicts now render** (see §2b). `mocks/held-call.json` is the held
+    fixture: set `USE_MOCK = true` and `MOCK_SCENARIO = 'held'` in
+    `lib/api-client.ts` to see it.
   - **Server-side upload validation** in `app/api/analyze/route.ts`: video MIME
     allow-list (mp4/webm/quicktime) and a size cap (default 25MB, `MAX_UPLOAD_MB`)
     on the clip and skeleton video, returning `BAD_FORMAT` / `FILE_TOO_LARGE`.
@@ -557,7 +558,8 @@ in the same commit.** Specifically:
   - **Tour:** `<main>` is set `inert` while the tour is open, so focus and
     screen-reader browsing cannot reach the page behind the scrim.
   - **Mist:** handles `webglcontextrestored` by rebuilding the GL setup (effect
-    keyed on an `epoch` counter; `resize(true)` forces viewport/uniforms on the
+    keyed on an `epoch` counter, including when the context is already lost at
+    startup; `resize(true)` forces viewport/uniforms on the
     fresh context). Not exercised against a real GPU reset.
   - **NCAA lacrosse codes** corrected for the three the 2025-26 book renumbered:
     Offside 4-10 → 4-12, Cross-Check 5-4 → 5-11, Unnecessary Roughness 5-11 →

@@ -1,0 +1,61 @@
+{
+  "sport": "soccer",
+  "verdict": "BAD_CALL",
+  "confidence": "LOW",
+  "playDescription": "The attacker makes a run in behind the last defender as the through-ball is played. Freezing the frame at the moment of the pass, the attacker's head, torso, and trailing foot are clearly level with the second-to-last defender — no part of the body that can legally play the ball is beyond the defensive line.",
+  "reasoning": "Offside is judged at the exact moment the ball is played by a teammate, not when it is received. At that instant the attacker is level with the defender, and a player level with the second-to-last opponent is not in an offside position. The assistant referee's flag was therefore incorrect; the goal should have stood.",
+  "rulesCited": [
+    {
+      "code": "LOTG-11.1",
+      "title": "Offside position",
+      "text": "A player is in an offside position if any part of the head, body or feet is in the opponents' half and closer to the opponents' goal line than both the ball and the second-to-last opponent. A player level with the second-to-last opponent or level with the last two opponents is not offside.",
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-position",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.1: Offside position"
+      }
+    },
+    {
+      "code": "LOTG-11.2",
+      "title": "Offside offence — moment of judgement",
+      "text": "The offside position is assessed at the moment the ball is played or touched by a teammate, not at the moment the ball is received.",
+      "source": {
+        "url": "https://www.theifab.com/laws/latest/offside/#offside-offence",
+        "publisher": "IFAB",
+        "label": "IFAB Laws of the Game — Law 11.2: Offside offence"
+      }
+    }
+  ],
+  "originalCall": "Offside — goal disallowed",
+  "processingMs": 11840,
+  "runId": "mock-held-0001",
+  "reliability": "UNRELIABLE",
+  "reliabilityScore": 0.41,
+  "accuracyScore": 0.62,
+  "needsHumanReview": true,
+  "reviewReasons": [
+    "The two observers disagreed about where the attacker was at the moment of the pass.",
+    "The evidence auditor found the verdict claims more certainty than the footage supports."
+  ],
+  "contested": [
+    "Whether the attacker's trailing foot was level with the second-to-last defender"
+  ],
+  "stage": "chair",
+  "panel": [
+    {
+      "role": "Strict-letter referee",
+      "verdict": "BAD_CALL",
+      "confidence": "MEDIUM"
+    },
+    {
+      "role": "Game-flow referee",
+      "verdict": "FAIR_CALL",
+      "confidence": "LOW"
+    },
+    {
+      "role": "Video analyst",
+      "verdict": "INCONCLUSIVE",
+      "confidence": "LOW"
+    }
+  ]
+}

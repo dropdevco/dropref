@@ -7,9 +7,10 @@ import type {
 import fairCall from '@/mocks/fair-call.json';
 import badCall from '@/mocks/bad-call.json';
 import inconclusive from '@/mocks/inconclusive.json';
+import heldCall from '@/mocks/held-call.json';
 import errorMock from '@/mocks/error.json';
 
-export type MockScenario = 'fair' | 'bad' | 'inconclusive' | 'error';
+export type MockScenario = 'fair' | 'bad' | 'inconclusive' | 'held' | 'error';
 
 /**
  * OWNER: Dev A (frontend).
@@ -32,11 +33,13 @@ const MOCKS: {
   fair: AnalyzeResponse;
   bad: AnalyzeResponse;
   inconclusive: AnalyzeResponse;
+  held: AnalyzeResponse;
   error: AnalyzeError;
 } = {
   fair: fairCall as AnalyzeResponse,
   bad: badCall as AnalyzeResponse,
   inconclusive: inconclusive as AnalyzeResponse,
+  held: heldCall as AnalyzeResponse,
   error: errorMock as AnalyzeError,
 };
 
