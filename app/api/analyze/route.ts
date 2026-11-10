@@ -17,19 +17,45 @@ import { SportId } from '../../../types/contract';
 export const maxDuration = 300;
 export const runtime = 'nodejs';
 
+/**
+ * Server-side upload ceiling. The client transcodes every analysable clip to a
+ * small WebM (it re-encodes anything over 8MB), so a legitimate request is far
+ * below this; the cap exists so a direct caller cannot make us base64-inflate
+ * an arbitrarily large body. Override with MAX_UPLOAD_MB.
+ */
+const MAX_UPLOAD_BYTES =
+  (Number(process.env.MAX_UPLOAD_MB) > 0 ? Number(process.env.MAX_UPLOAD_MB) : 25) *
+  1024 *
+  1024;
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+
+function errorJson(error: string, code: string, status: number) {
+  return NextResponse.json({ error, code }, { status });
+}
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const sport = formData.get('sport') as string;
     const originalCall = formData.get('originalCall') as string | null;
     const videoFile = formData.get('video') as File;
-    const skeletonVideo = formData.get('skeletonVideo') as File | null;
+    const skeletonRaw = formData.get('skeletonVideo');
+    const skeletonVideo = skeletonRaw instanceof File ? skeletonRaw : null;
 
-    if (!sport || !videoFile) {
-      return NextResponse.json(
-        { error: 'Missing required fields', code: 'BAD_FORMAT' },
-        { status: 400 }
-      );
+    if (!sport || !(videoFile instanceof File)) {
+      return errorJson('Missing required fields', 'BAD_FORMAT', 400);
+    }
+
+    const baseType = (videoFile.type || 'video/mp4').split(';')[0].trim().toLowerCase();
+    if (!ALLOWED_VIDEO_TYPES.includes(baseType)) {
+      return errorJson('Unsupported video format. Use MP4, MOV or WebM.', 'BAD_FORMAT', 415);
+    }
+    if (
+      videoFile.size > MAX_UPLOAD_BYTES ||
+      (skeletonVideo && skeletonVideo.size > MAX_UPLOAD_BYTES)
+    ) {
+      const mb = Math.round(MAX_UPLOAD_BYTES / (1024 * 1024));
+      return errorJson(`Clip is too large for analysis (limit ${mb}MB).`, 'FILE_TOO_LARGE', 413);
     }
 
     const arrayBuffer = await videoFile.arrayBuffer();

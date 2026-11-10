@@ -7,6 +7,8 @@ import {
   RotateCcw,
   Scale,
   ScrollText,
+  ShieldAlert,
+  Users,
 } from 'lucide-react';
 
 import { ConfidenceMeter, CONFIDENCE_LABEL } from '@/components/confidence-meter';
@@ -18,6 +20,7 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { VerdictBadge, VERDICT_LABEL } from '@/components/verdict-badge';
+import { cn } from '@/lib/utils';
 import type { AnalyzeResponse, CitedRule } from '@/types/contract';
 
 /**
@@ -100,17 +103,69 @@ export function ResultView({
     ? `data:video/mp4;base64,${result.annotatedVideoBase64}`
     : previewUrl;
 
+  // The graph's human gate fired: the system does NOT stand behind this verdict.
+  // Showing it like any other result is the one thing the gate exists to stop.
+  const held = result.needsHumanReview === true;
+  const reasons = result.reviewReasons ?? [];
+  const contested = result.contested ?? [];
+  const panel = result.panel ?? [];
+  const showDissent = contested.length > 0 || panel.length > 0;
+  const reliabilityPct =
+    typeof result.reliabilityScore === 'number'
+      ? Math.round(result.reliabilityScore * 100)
+      : null;
+
   return (
     <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start">
       <p className="sr-only" role="status">
-        Verdict: {VERDICT_LABEL[result.verdict]}. Confidence:{' '}
-        {CONFIDENCE_LABEL[result.confidence]}.
+        {held
+          ? `Held for human review. Provisional verdict, not confirmed: ${VERDICT_LABEL[result.verdict]}. `
+          : `Verdict: ${VERDICT_LABEL[result.verdict]}. `}
+        Confidence: {CONFIDENCE_LABEL[result.confidence]}.
       </p>
+
+      {held && (
+        <section
+          aria-labelledby="held-title"
+          className="rounded-2xl border border-card_yellow/40 bg-card_yellow/[0.07] p-5 lg:col-span-2 lg:p-6"
+        >
+          <h2
+            id="held-title"
+            className="flex items-center gap-2 font-display text-lg font-semibold text-card_yellow"
+          >
+            <ShieldAlert className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            Held for human review
+          </h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-foreground/80">
+            We don&apos;t stand behind this verdict yet. Treat it as provisional
+            and have a person check the play before relying on it.
+          </p>
+          {reasons.length > 0 && (
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-foreground/80">
+              {reasons.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
         <div className="bezel">
           <div className="bezel-core flex flex-col items-center gap-5 px-6 py-8 lg:min-h-[520px] lg:justify-center">
-            <VerdictBadge verdict={result.verdict} />
+            <div
+              className={cn(
+                'flex flex-col items-center gap-3',
+                held && 'opacity-60 saturate-50',
+              )}
+            >
+              <VerdictBadge verdict={result.verdict} />
+            </div>
+            {held && (
+              <p className="rounded-full border border-card_yellow/40 bg-card_yellow/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-card_yellow">
+                Provisional - not confirmed
+              </p>
+            )}
             {result.originalCall && (
               <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted-foreground">
                 <Flag className="h-3 w-3" strokeWidth={1.5} aria-hidden />
@@ -123,6 +178,11 @@ export function ResultView({
             <div className="w-full max-w-xs">
               <ConfidenceMeter confidence={result.confidence} />
             </div>
+            {reliabilityPct !== null && (
+              <p className="eyebrow">
+                Reliability <span className="tabular">{reliabilityPct}%</span>
+              </p>
+            )}
           </div>
         </div>
 
@@ -171,6 +231,41 @@ export function ResultView({
           {result.reasoning}
         </Section>
       </div>
+
+      {showDissent && (
+        <div className="space-y-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 lg:col-start-2 lg:p-6">
+          <h3 className="eyebrow">
+            <Users className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
+            Where the analysis disagreed
+          </h3>
+          {contested.length > 0 && (
+            <div>
+              <p className="text-sm text-foreground/70">
+                The two observers could not agree on:
+              </p>
+              <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[15px] text-foreground/80">
+                {contested.map((fact) => (
+                  <li key={fact}>{fact}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {panel.length > 0 && (
+            <ul className="flex flex-wrap gap-2">
+              {panel.map((seat, i) => (
+                <li
+                  key={`${seat.role}-${i}`}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted-foreground"
+                >
+                  <span className="font-medium text-foreground">{seat.role}</span>
+                  {': '}
+                  {VERDICT_LABEL[seat.verdict]} ({CONFIDENCE_LABEL[seat.confidence]})
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {result.rulesCited.length > 0 && (
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 lg:col-start-2 lg:px-6">

@@ -37,3 +37,8 @@ backend/eval/results/
 
 # graph run artifacts (generated, one directory per analysis)
 backend/runs/
+
+# python bytecode and test output
+__pycache__/
+*.pyc
+cv_service/test_output_annotated.mp4

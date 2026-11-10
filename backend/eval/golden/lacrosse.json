@@ -217,7 +217,7 @@
       "originalCall": "offside",
       "expectedVerdict": "FAIR_CALL",
       "expectedRuleRefs": [
-        "Rule 4, Section 10 :: offside"
+        "Rule 4, Section 12 :: offside"
       ],
       "difficulty": "easy",
       "tag": "offside",
@@ -230,7 +230,7 @@
       "originalCall": "offside",
       "expectedVerdict": "BAD_CALL",
       "expectedRuleRefs": [
-        "Rule 4, Section 10 :: offside"
+        "Rule 4, Section 12 :: offside"
       ],
       "difficulty": "easy",
       "tag": "offside",
@@ -243,7 +243,7 @@
       "originalCall": null,
       "expectedVerdict": "BAD_CALL",
       "expectedRuleRefs": [
-        "Rule 4, Section 10 :: offside"
+        "Rule 4, Section 12 :: offside"
       ],
       "difficulty": "medium",
       "tag": "offside",
@@ -295,7 +295,7 @@
       "originalCall": "cross-check",
       "expectedVerdict": "FAIR_CALL",
       "expectedRuleRefs": [
-        "Rule 5, Section 4 :: cross-check"
+        "Rule 5, Section 11 :: cross-check"
       ],
       "difficulty": "hard",
       "tag": "cross-check",
@@ -308,7 +308,7 @@
       "originalCall": "cross-check",
       "expectedVerdict": "BAD_CALL",
       "expectedRuleRefs": [
-        "Rule 5, Section 4 :: cross-check"
+        "Rule 5, Section 11 :: cross-check"
       ],
       "difficulty": "hard",
       "tag": "legal-push-hands-together",
@@ -321,7 +321,7 @@
       "originalCall": null,
       "expectedVerdict": "BAD_CALL",
       "expectedRuleRefs": [
-        "Rule 5, Section 4 :: cross-check"
+        "Rule 5, Section 11 :: cross-check"
       ],
       "difficulty": "medium",
       "tag": "cross-check",
@@ -406,7 +406,7 @@
       "originalCall": "unnecessary roughness",
       "expectedVerdict": "BAD_CALL",
       "expectedRuleRefs": [
-        "Rule 5, Section 11 :: unnecessary-roughness"
+        "Rule 5, Section 5 :: unnecessary-roughness"
       ],
       "difficulty": "medium",
       "tag": "unnecessary-roughness",
@@ -456,7 +456,7 @@
       "originalCall": null,
       "expectedVerdict": "FAIR_CALL",
       "expectedRuleRefs": [
-        "Rule 5, Section 4 :: cross-check"
+        "Rule 5, Section 11 :: cross-check"
       ],
       "difficulty": "medium",
       "tag": "legal-push-hands-together",

@@ -263,6 +263,9 @@ function compile(gl: AnyGL, type: number, src: string): WebGLShader | null {
 export function MistBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [glReady, setGlReady] = useState(false);
+  // Bumped when the browser restores a lost GL context; re-running the setup
+  // effect rebuilds the program, buffer and uniforms from scratch.
+  const [epoch, setEpoch] = useState(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -366,7 +369,7 @@ export function MistBackground() {
 
     /* ---- sizing ---- */
     let quality = BASE_QUALITY;
-    const resize = () => {
+    const resize = (force = false) => {
       if (!gl || disposed) return false;
       const cssW = canvas.clientWidth || window.innerWidth;
       const cssH = canvas.clientHeight || window.innerHeight;
@@ -376,7 +379,9 @@ export function MistBackground() {
 
       const w = Math.max(1, Math.round(cssW * scale));
       const h = Math.max(1, Math.round(cssH * scale));
-      if (w === canvas.width && h === canvas.height) return false;
+      // `force` is for a fresh context, whose viewport/uniforms are unset even
+      // when the canvas already has the right size.
+      if (!force && w === canvas.width && h === canvas.height) return false;
 
       canvas.width = w;
       canvas.height = h;
@@ -384,7 +389,7 @@ export function MistBackground() {
       gl.uniform2f(uRes, w, h);
       return true;
     };
-    resize();
+    resize(true);
 
     /* ---- draw ---- */
     const draw = (seconds: number) => {
@@ -487,10 +492,17 @@ export function MistBackground() {
       if (!disposed) setGlReady(false); // silently reveal the CSS fallback
     };
 
+    // The browser may hand the context back after a GPU reset. Every GL object
+    // died with the old context, so rebuild everything via the effect.
+    const onContextRestored = () => {
+      if (!disposed) setEpoch((n) => n + 1);
+    };
+
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     canvas.addEventListener('webglcontextlost', onContextLost);
+    canvas.addEventListener('webglcontextrestored', onContextRestored);
 
     if (motionQuery) {
       if (typeof motionQuery.addEventListener === 'function') {
@@ -513,6 +525,7 @@ export function MistBackground() {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('orientationchange', onResize);
       canvas.removeEventListener('webglcontextlost', onContextLost);
+      canvas.removeEventListener('webglcontextrestored', onContextRestored);
       if (motionQuery) {
         if (typeof motionQuery.removeEventListener === 'function') {
           motionQuery.removeEventListener('change', onMotionChange);
@@ -523,7 +536,7 @@ export function MistBackground() {
       ro?.disconnect();
       bail();
     };
-  }, []);
+  }, [epoch]);
 
   return (
     <div className="mist-layer" aria-hidden="true">

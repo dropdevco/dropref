@@ -568,6 +568,22 @@ export function ProductTour({
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [open, close, goNext, goBack]);
 
+  // Make the page behind the tour genuinely inert while it is open: no focus,
+  // no pointer input, and hidden from a screen-reader virtual cursor, so the
+  // aria-modal contract is real rather than just asserted. The dialog itself is
+  // portalled to <body>, outside <main>, so it is unaffected. Geometry still
+  // measures and scrolls normally, so the spotlight keeps tracking its target.
+  useEffect(() => {
+    if (!open) return;
+    const main = document.querySelector('main');
+    if (!main) return;
+    const hadInert = main.hasAttribute('inert');
+    main.setAttribute('inert', '');
+    return () => {
+      if (!hadInert) main.removeAttribute('inert');
+    };
+  }, [open]);
+
   // Keep focus in the card across step changes: "Back" is disabled on step one,
   // so advancing off it would otherwise strand focus on <body>.
   useEffect(() => {
@@ -600,12 +616,12 @@ export function ProductTour({
             Clicking the backdrop is deliberately a no-op: only Skip, Done or Esc
             end the tour, so a misplaced click never destroys the user's place.
 
-            Scope, precisely: keyboard is handled separately by the focus trap
-            below, which keeps Tab inside the card. The page behind is NOT
-            `inert` and NOT `aria-hidden`, so a screen-reader virtual cursor can
-            still browse it, and the page still scrolls — the latter deliberate,
-            since the spotlight tracks scrolling. Marking <main> aria-hidden
-            would also hide the very element each step is pointing at.
+            Scope, precisely: while the tour is open <main> is marked `inert`
+            (see the effect above), so keyboard focus and screen-reader browsing
+            cannot reach the page behind. The focus trap below still keeps Tab
+            inside the card. The page still scrolls — deliberate, since the
+            spotlight tracks scrolling. The card text carries the teaching, so
+            hiding the pointed-at element from assistive tech loses nothing.
           */}
           <div className="pointer-events-auto absolute inset-0" aria-hidden />
 

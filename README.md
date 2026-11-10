@@ -1,6 +1,6 @@
 # RefCheck AI
 
-AI-powered instant replay: upload a short clip, pick the sport, and get a verdict on whether the referee's call was fair — cited against the official rulebook.
+AI-powered instant replay: upload a short clip, pick the sport, and get a verdict on whether the referee's call was fair, cited against the official rulebook. Supports soccer (IFAB), football (NFL) and men's lacrosse (NCAA).
 
 **Live:** _<!-- TODO: add deployment URL -->_
 
@@ -14,43 +14,55 @@ cp .env.example .env      # then fill in OPENROUTER_API_KEY
 npm run dev               # http://localhost:3000
 ```
 
-Build & typecheck:
+| Command | What it does |
+| --- | --- |
+| `npm run build` / `npm run typecheck` / `npm run lint` | Build, type-check, lint |
+| `npm run test:graph` | Analysis graph mechanism tests |
+| `npm run test:council` | Council (panel / debate / chair) tests |
+| `npm run test:eval` | Eval metrics tests |
+| `npm run eval` | Accuracy and cost harness against `backend/eval/golden/` |
+
+Optional computer-vision service (only used when `NEXT_PUBLIC_ENABLE_SAM=true`):
 
 ```bash
-npm run build
-npm run typecheck
+cd cv_service && pip install -r requirements.txt && uvicorn main:app --port 8000
 ```
 
-### Frontend mock mode
+### Mock mode
 
-The UI ships wired to mock data so it runs with zero backend. Toggle it in
-[`lib/api-client.ts`](lib/api-client.ts):
-
-```ts
-export const USE_MOCK = true;   // flip to false to hit /api/analyze
-```
-
-While mocking, pick which fixture is returned with `MOCK_SCENARIO`
-(`'fair' | 'bad' | 'inconclusive' | 'error'`) at the top of the same file.
+The app calls the real `/api/analyze` (`USE_MOCK = false` in [`lib/api-client.ts`](lib/api-client.ts)).
+Set it to `true` to run the UI against the fixtures in `mocks/`; `MOCK_SCENARIO` picks which one.
 
 ---
 
 ## Architecture
 
-| Path | Owner | Purpose |
-| --- | --- | --- |
-| `types/contract.ts` | shared (frozen) | The request/response contract both halves build against. Do not modify. |
-| `app/page.tsx`, `components/**` | Dev A (frontend) | UI, state machine, client-side validation. |
-| `lib/api-client.ts`, `mocks/**` | Dev A (frontend) | Client fetch + mock fixtures. |
-| `app/api/analyze/route.ts` | Dev B (pipeline) | Request validation (done) + `analyze()` call. |
-| `lib/ai/**`, `lib/rules/**`, `lib/sports.ts` | Dev B (pipeline) | Gemini pipeline, rule retrieval, corpus loading. |
-| `data/sports/*.json` | Dev B (pipeline) | Per-sport rulebook corpus. |
+| Path | Purpose |
+| --- | --- |
+| `types/contract.ts` | Shared request/response contract. Existing fields are frozen; new ones may only be added as optional. |
+| `app/`, `components/`, `lib/` | Next.js UI, client state machine, video editor, API client. |
+| `app/api/analyze/route.ts` | Upload validation (type and size), optional CV pre-pass, then runs the graph. |
+| `backend/graph/` | The analysis graph, described below. |
+| `backend/council/` | Multi-model adjudication: panel, debate, chair. |
+| `backend/eval/` | Accuracy and cost harness with golden sets per sport. |
+| `backend/rules/`, `backend/sports.ts`, `backend/data/sports/*.json` | Rule retrieval and the zod-validated rulebook corpus. |
+| `cv_service/` | Optional Python/FastAPI tracking service. |
 
-Adding a sport is meant to be **one JSON file + one line** in the frontend
-`SPORTS` array — no other code changes.
+Adding a sport is one corpus JSON file plus one entry in `components/sports.ts`.
 
----
+## AI pipeline
 
-## AI Pipeline
+`POST /api/analyze` runs the graph in `backend/graph/run.ts`:
 
-_<!-- Dev B: document the two-stage Gemini pipeline here. -->_
+```
+CV pre-pass ─┬─> observer A (raw clip) ──┐
+             └─> observer B (CV render) ─┴─> reconciler ─> retrieval
+                                                              │
+                          3 seats ─> [debate] ─> [chair] ──────┘
+                                          │
+                              evidence auditor ─> score ─> human gate
+```
+
+When reliability is too low, the auditor finds the verdict overreaches its evidence, or the observers cannot be reconciled, the human gate **holds** the verdict. The response then has `needsHumanReview: true` and `reviewReasons`, and the UI shows it as provisional rather than as a confirmed result. Every run writes per-node artifacts to `backend/runs/<runId>/` (gitignored).
+
+See [`HANDOFF.md`](HANDOFF.md) for the full working notes and changelog.
