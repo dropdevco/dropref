@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { Upload, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SAM_ENABLED } from '@/lib/sam-config';
+import { SamDisabledNotice } from '@/components/sam-disabled-notice';
 
-export default function CVTestSandbox() {
+function CVTestSandbox() {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [skeletonSrc, setSkeletonSrc] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -156,4 +158,9 @@ export default function CVTestSandbox() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  if (!SAM_ENABLED) return <SamDisabledNotice tool="The CV test page" />;
+  return <CVTestSandbox />;
 }

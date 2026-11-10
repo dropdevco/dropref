@@ -3,6 +3,7 @@
 import { useState, useRef, MouseEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, Crosshair, X, Scan, Video as VideoIcon } from "lucide-react";
+import { samUrl, samErrorMessage } from "@/lib/sam-config";
 
 type SamObject = {
   id: number;
@@ -92,14 +93,14 @@ export function AdvancedLayer({
       const formData = new FormData();
       formData.append("image", frameBlob, "frame.jpg");
       
-      const res = await fetch("http://127.0.0.1:8000/set-image", {
+      const res = await fetch(samUrl("/set-image"), {
         method: "POST",
         body: formData,
       });
       if (!res.ok) throw new Error(await res.text());
       setIsFrameLocked(true);
     } catch (err: any) {
-      setError(err.message || "Failed to lock frame");
+      setError(samErrorMessage(err, "Failed to lock frame"));
     } finally {
       setIsPreviewing(false);
     }
@@ -153,7 +154,7 @@ export function AdvancedLayer({
       formData.append("g", color.g.toString());
       formData.append("b", color.b.toString());
       
-      const res = await fetch("http://127.0.0.1:8000/preview-mask", {
+      const res = await fetch(samUrl("/preview-mask"), {
         method: "POST",
         body: formData,
       });
@@ -181,7 +182,7 @@ export function AdvancedLayer({
       }
       
     } catch (err: any) {
-      setError(err.message || "Failed to preview mask");
+      setError(samErrorMessage(err, "Failed to preview mask"));
     } finally {
       setIsPreviewing(false);
     }
@@ -230,7 +231,7 @@ export function AdvancedLayer({
       formData.append("crop_w", cropPixelW.toString());
       formData.append("crop_h", cropPixelH.toString());
 
-      const res = await fetch("http://127.0.0.1:8000/process-video", {
+      const res = await fetch(samUrl("/process-video"), {
         method: "POST",
         body: formData,
       });
@@ -246,7 +247,7 @@ export function AdvancedLayer({
       setIsProcessing(false);
       
     } catch (err: any) {
-      setError(err.message);
+      setError(samErrorMessage(err, "Failed to process video"));
       setIsProcessing(false);
     }
   };

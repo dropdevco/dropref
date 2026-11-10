@@ -3,6 +3,8 @@
 import { useState, useRef, MouseEvent, PointerEvent, useEffect } from "react";
 import { analyzeClip, isAnalyzeError } from "@/lib/api-client";
 import type { AnalyzeResponse, AnalyzeError } from "@/types/contract";
+import { SAM_ENABLED, samUrl } from "@/lib/sam-config";
+import { SamDisabledNotice } from "@/components/sam-disabled-notice";
 
 type SamObject = {
   id: number;
@@ -19,7 +21,7 @@ const COLORS = [
   { r: 255, g: 0, b: 255, hex: "#ff00ff" }, // Magenta
 ];
 
-export default function SamTestPage() {
+function SamTestPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [rawVideoUrl, setRawVideoUrl] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export default function SamTestPage() {
       const formData = new FormData();
       formData.append("image", frameBlob, "frame.jpg");
       
-      const res = await fetch("http://localhost:8000/set-image", {
+      const res = await fetch(samUrl("/set-image"), {
         method: "POST",
         body: formData,
       });
@@ -231,7 +233,7 @@ export default function SamTestPage() {
       formData.append("g", color.g.toString());
       formData.append("b", color.b.toString());
       
-      const res = await fetch("http://localhost:8000/preview-mask", {
+      const res = await fetch(samUrl("/preview-mask"), {
         method: "POST",
         body: formData,
       });
@@ -294,7 +296,7 @@ export default function SamTestPage() {
         formData.append("crop_h", cropRect.h.toString());
       }
 
-      const res = await fetch("http://localhost:8000/crop-only", {
+      const res = await fetch(samUrl("/crop-only"), {
         method: "POST",
         body: formData,
       });
@@ -343,7 +345,7 @@ export default function SamTestPage() {
         formData.append("crop_h", cropRect.h.toString());
       }
 
-      const res = await fetch("http://localhost:8000/process-video", {
+      const res = await fetch(samUrl("/process-video"), {
         method: "POST",
         body: formData,
       });
@@ -376,7 +378,7 @@ export default function SamTestPage() {
       const formData = new FormData();
       formData.append("video", videoBlobInput, "sam_output.mp4");
 
-      const res = await fetch("http://localhost:8000/process-yolo", {
+      const res = await fetch(samUrl("/process-yolo"), {
         method: "POST",
         body: formData,
       });
@@ -409,7 +411,7 @@ export default function SamTestPage() {
       const formData = new FormData();
       formData.append("video", videoBlobInput, "sam_output.mp4");
 
-      const res = await fetch("http://localhost:8000/extract-numbers", {
+      const res = await fetch(samUrl("/extract-numbers"), {
         method: "POST",
         body: formData,
       });
@@ -854,4 +856,9 @@ export default function SamTestPage() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  if (!SAM_ENABLED) return <SamDisabledNotice tool="The SAM test page" />;
+  return <SamTestPage />;
 }

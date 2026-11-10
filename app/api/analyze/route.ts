@@ -1,3 +1,4 @@
+import { SAM_ENABLED, samUrl } from '@/lib/sam-config';
 import { NextResponse } from 'next/server';
 import { runAnalysisGraph } from '../../../backend/graph/run';
 import { SportId } from '../../../types/contract';
@@ -78,14 +79,14 @@ export async function POST(req: Request) {
     }
 
     // Call the hybrid CV service to get annotated video and telemetry
-    const enableCV = process.env.NEXT_PUBLIC_ENABLE_SAM === 'true';
+    const enableCV = SAM_ENABLED;
     
     if (enableCV) {
       try {
         const cvFormData = new FormData();
         cvFormData.append('video', videoFile);
 
-        const cvRes = await fetch('http://127.0.0.1:8000/track', {
+        const cvRes = await fetch(samUrl('/track'), {
           method: 'POST',
           body: cvFormData,
         });
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
         console.warn('CV service unreachable. Proceeding with raw video.', e);
       }
     } else {
-      console.log('CV service is disabled via NEXT_PUBLIC_ENABLE_SAM env var. Proceeding with raw video.');
+      console.log('SAM/CV service is off (run `npm run dev:sam` to enable). Proceeding with raw video.');
     }
 
     const response = await runAnalysisGraph({

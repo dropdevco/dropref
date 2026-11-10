@@ -44,6 +44,7 @@ import { ErrorView } from '@/components/error-view';
 import { ProductTour } from '@/components/tour/product-tour';
 import { TourDemoEditor } from '@/components/tour/tour-demo-editor';
 import { AdvancedLayer } from '@/components/advanced-layer';
+import { SAM_ENABLED } from '@/lib/sam-config';
 
 type Phase = 'idle' | 'analyzing' | 'result' | 'error';
 
@@ -478,7 +479,7 @@ export default function Home() {
                     </p>
                   )}
 
-                  {process.env.NEXT_PUBLIC_ENABLE_SAM === 'true' && (!hasEdits || preparedFile) && (
+                  {SAM_ENABLED && (!hasEdits || preparedFile) && (
                     <Button
                       type="button"
                       variant="outline"
@@ -641,7 +642,7 @@ export default function Home() {
                       </p>
                     )}
 
-                    {process.env.NEXT_PUBLIC_ENABLE_SAM === 'true' && (!hasEdits || preparedFile) && (
+                    {SAM_ENABLED && (!hasEdits || preparedFile) && (
                       <Button
                         type="button"
                         variant="outline"

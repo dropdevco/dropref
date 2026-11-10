@@ -22,7 +22,18 @@ npm run dev               # http://localhost:3000
 | `npm run test:eval` | Eval metrics tests |
 | `npm run eval` | Accuracy and cost harness against `backend/eval/golden/` |
 
-Optional computer-vision service (only used when `NEXT_PUBLIC_ENABLE_SAM=true`):
+Optional SAM / CV tools — off by default. They need a local Python service and a lot of RAM,
+so they are only set up on some machines; everything else works without them.
+
+```bash
+npm run dev       # without SAM (any machine)
+npm run dev:sam   # with SAM: shows the Advanced Tracking Layer, /sam-test and /cv-test
+```
+
+`dev:sam` expects a service at `http://127.0.0.1:8000` (override with `NEXT_PUBLIC_SAM_SERVICE_URL`)
+and warns at startup if nothing is answering. Two different services use that port, so run one at a time:
+`../sam-service` (SAM 2 masks for the Advanced Tracking Layer, not in this repo) or `cv_service/`
+(`/track`, used by `/api/analyze`; if it's not running the analysis just uses the raw video):
 
 ```bash
 cd cv_service && pip install -r requirements.txt && uvicorn main:app --port 8000

@@ -1,6 +1,13 @@
+import { SAM_ENABLED, samUrl } from '@/lib/sam-config';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  if (!SAM_ENABLED) {
+    return NextResponse.json(
+      { error: 'SAM/CV service is off. Restart with `npm run dev:sam` to use it.' },
+      { status: 503 },
+    );
+  }
   try {
     const formData = await request.formData();
     const videoFile = formData.get('video') as File | null;
@@ -13,7 +20,7 @@ export async function POST(request: Request) {
     const pythonFormData = new FormData();
     pythonFormData.append('video', videoFile);
 
-    const cvResponse = await fetch('http://127.0.0.1:8000/track', {
+    const cvResponse = await fetch(samUrl('/track'), {
       method: 'POST',
       body: pythonFormData as any, // TypeScript expects browser FormData, node fetch takes it fine
     });

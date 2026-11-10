@@ -40,7 +40,7 @@
 | `backend/graph/**` | **Dev B** | The analysis graph. Owns the observation stage, the evidence auditor, the reliability composition and the human gate. |
 | `backend/council/**`, `backend/eval/**` | **Dev B** | Adjudication sub-graph and the accuracy harness. |
 | `backend/data/sports/*.json` | **Dev B** | ⚠️ Moved from `data/sports/*.json` (see above). Corpus files, no longer empty shells — Soccer/Football/Lacrosse are populated. Never edit. |
-| `cv_service/` | **Dev B** | Separate Python/FastAPI service (RT-DETR + DeepSORT + PaddleOCR), optional, called over HTTP from `app/api/analyze/route.ts` (`http://127.0.0.1:8000/track`) when `NEXT_PUBLIC_ENABLE_SAM=true`. Not present when this doc was first written. |
+| `cv_service/` | **Dev B** | Separate Python/FastAPI service (RT-DETR + DeepSORT + PaddleOCR), optional, called over HTTP from `app/api/analyze/route.ts` (`/track` on the SAM service URL) only in `npm run dev:sam` mode. Not present when this doc was first written. |
 
 **Hard constraints (from the brief):**
 - No dependencies beyond: `@google/generative-ai` ^0.21.0, `zod` ^3.23.8, `fuse.js` ^7.0.0,
@@ -237,12 +237,18 @@ npm run test:graph     # backend/graph/__tests__/graph.test.ts
 npm run eval            # tsx backend/eval/cli.ts — accuracy/cost eval harness
 ```
 
-Optional CV microservice (`cv_service/`, only needed for `NEXT_PUBLIC_ENABLE_SAM=true`):
+Optional SAM / CV tools — **off by default**, only set up on some machines (heavy on RAM).
+`npm run dev` runs without them; `npm run dev:sam` turns them on (it forces
+`NEXT_PUBLIC_ENABLE_SAM`, overriding `.env.local`). Flag + service URL live in
+[`lib/sam-config.ts`](lib/sam-config.ts). When off: the Advanced Tracking Layer
+button is hidden, `/sam-test` and `/cv-test` show a "turned off" notice, and
+`/api/analyze` skips the CV pre-pass. Two services share port 8000 — run one:
 
 ```bash
-cd cv_service
-pip install -r requirements.txt
-uvicorn main:app --port 8000   # app/api/analyze/route.ts calls http://127.0.0.1:8000/track
+# SAM 2 masks for the Advanced Tracking Layer (lives outside the repo, in ../sam-service)
+cd ../sam-service && source venv/bin/activate && uvicorn main:app --port 8000
+# or the RT-DETR/DeepSORT/OCR tracker used by /api/analyze (/track)
+cd cv_service && pip install -r requirements.txt && uvicorn main:app --port 8000
 ```
 
 ---
